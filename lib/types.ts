@@ -1,0 +1,192 @@
+export type Categoria = {
+  id: string;
+  grupo: "calcados" | "acessorios";
+  nome: string;
+  slug: string;
+  ordem: number;
+  ativo: boolean;
+  desconto_atacado_percentual: number | null;
+};
+
+export type ProductSize = {
+  id: string;
+  color_id: string;
+  tamanho: string;
+  estoque: number;
+};
+
+export type ProductColor = {
+  id: string;
+  product_id: string;
+  nome: string;
+  hex: string | null;
+  imagens: string[];
+  ordem: number;
+  sizes: ProductSize[];
+};
+
+export type Product = {
+  id: string;
+  slug: string | null;
+  nome: string;
+  categoria_id: string;
+  categoria?: Categoria | null;
+  colecao: string | null;
+  preco: number;
+  desconto_percentual: number | null;
+  preco_atacado: number | null;
+  descricao: string | null;
+  caracteristicas: string[];
+  ativo: boolean;
+  destaque: boolean;
+  ordem: number;
+  surpresa_ativo: boolean;
+  colors: ProductColor[];
+};
+
+export type OrderStatus =
+  | "pendente"
+  | "pago"
+  | "preparando"
+  | "enviado"
+  | "pronto_retirada"
+  | "entregue"
+  | "retirado"
+  | "cancelado";
+
+export type OrderItem = {
+  id: string;
+  order_id: string;
+  produto_id: string | null;
+  produto_nome: string;
+  produto_cor: string | null;
+  produto_tamanho: string | null;
+  color_id: string | null;
+  size_id: string | null;
+  quantidade: number;
+  preco_unit: number;
+  subtotal: number;
+};
+
+export type EntregaTipo = "retirada" | "entrega" | "entrega_fora";
+
+export type Order = {
+  id: string;
+  created_at: string;
+  status: OrderStatus;
+  cliente_nome: string;
+  cliente_telefone: string | null;
+  entrega_tipo: EntregaTipo;
+  entrega_taxa: number;
+  endereco_rua: string | null;
+  endereco_numero: string | null;
+  endereco_bairro: string | null;
+  endereco_complemento: string | null;
+  endereco_cep: string | null;
+  endereco_cidade: string | null;
+  valor_produtos: number;
+  valor_total: number;
+  mp_payment_id: string | null;
+  forma_pagamento: string | null;
+  is_atacado: boolean;
+  customer_id: string | null;
+  revendedor_id: string | null;
+  items: OrderItem[];
+};
+
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  pendente: "Aguardando pagamento",
+  pago: "Pagamento aprovado",
+  preparando: "Pedido em separação",
+  enviado: "Saiu para entrega",
+  pronto_retirada: "Pronto para retirada",
+  entregue: "Entregue",
+  retirado: "Retirado",
+  cancelado: "Cancelado",
+};
+
+export function entregaTipoLabel(tipo: EntregaTipo): string {
+  if (tipo === "retirada") return "Retirada na loja";
+  if (tipo === "entrega_fora") return "Entrega (fora da cidade)";
+  return "Entrega";
+}
+
+export type Sale = {
+  id: string;
+  data: string;
+  produto_id: string | null;
+  produto_nome: string;
+  quantidade: number;
+  preco_unit: number;
+  valor_total: number;
+  forma_pagamento: string | null;
+  cliente: string | null;
+  origem: string;
+  produto_cor: string | null;
+  produto_tamanho: string | null;
+  mp_payment_id: string | null;
+  status: string;
+  is_atacado: boolean;
+  created_at: string;
+  order_id: string | null;
+};
+
+// Preço já com o desconto interno de varejo aplicado (o que de fato é
+// cobrado do cliente no varejo). Sem desconto ativo, é igual ao preço de
+// tabela.
+export function precoVarejo(p: Pick<Product, "preco" | "desconto_percentual">): number {
+  if (!p.desconto_percentual) return p.preco;
+  // Math em centavos inteiros para bater exatamente com `round(numeric, 2)`
+  // half-up do Postgres (`_preco_varejo`). Float direto diverge em ~1 centavo
+  // numa faixa grande de preço×desconto.
+  const cents = Math.round(p.preco * 100) * (100 - p.desconto_percentual);
+  return Math.round(cents / 100) / 100;
+}
+
+// Preço de atacado: override explícito do produto tem prioridade; senão
+// deriva do % da subcategoria; sem nenhum dos dois, cai no preço de tabela.
+// Nunca aplica a promo de varejo (desconto_percentual não entra na conta).
+export function precoAtacado(
+  p: Pick<Product, "preco" | "preco_atacado">,
+  categoria: Pick<Categoria, "desconto_atacado_percentual"> | null | undefined
+): number {
+  if (p.preco_atacado != null) return p.preco_atacado;
+  const pct = categoria?.desconto_atacado_percentual;
+  if (pct == null) return p.preco;
+  // Mesma math em centavos inteiros do `precoVarejo` — bate com `_preco_atacado`.
+  const cents = Math.round(p.preco * 100) * (100 - pct);
+  return Math.round(cents / 100) / 100;
+}
+
+export function precisaNumeracao(grupo: Categoria["grupo"] | undefined): boolean {
+  return grupo === "calcados";
+}
+
+export function contarSkusDistintos(
+  items: { produtoId: string; colorId: string; sizeId: string | null }[]
+): number {
+  return new Set(items.map((i) => `${i.produtoId}::${i.colorId}::${i.sizeId ?? ""}`)).size;
+}
+
+export function totalEstoque(p: Pick<Product, "colors">): number {
+  return p.colors.reduce(
+    (sum, c) => sum + c.sizes.reduce((s, sz) => s + sz.estoque, 0),
+    0
+  );
+}
+
+export function capaImagem(p: Pick<Product, "colors">): string | null {
+  for (const c of p.colors) {
+    if (c.imagens && c.imagens.length > 0) return c.imagens[0];
+  }
+  return null;
+}
+
+export function slugify(nome: string): string {
+  return nome
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}

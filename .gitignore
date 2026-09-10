@@ -6,5 +6,6 @@ out/
 reference/
 *.zip
 *.tsbuildinfo
+next-env.d.ts
 coverage/
 .superpowers/
