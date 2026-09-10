@@ -3,8 +3,8 @@
 export const BRAND = {
   nome: "LOLA",
   tagline: "Calçados e acessórios",
-  // Preencher com o WhatsApp real da loja (só dígitos, com DDI 55).
-  whatsapp: "5581000000000",
+  // WhatsApp da loja (só dígitos, com DDI 55).
+  whatsapp: "5581987307223",
   get whatsappUrl() {
     return `https://wa.me/${this.whatsapp}`;
   },
