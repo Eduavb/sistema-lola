@@ -6,6 +6,9 @@ import HeroCarousel from "@/components/HeroCarousel";
 import TrustStrip from "@/components/TrustStrip";
 import ProductCard from "@/components/ProductCard";
 import { PaymentsStrip, SiteFooter } from "@/components/PaymentsFooter";
+import CategoryChips from "@/components/CategoryChips";
+import BrandStory from "@/components/BrandStory";
+import type { Categoria } from "@/lib/types";
 
 export const revalidate = 0;
 
@@ -99,10 +102,10 @@ function GrupoSection({
   return (
     <section className="section" id={id}>
       <div className="wrap">
-        <h2 className="section-title" style={{ marginBottom: 40 }}>
-          <span className="serif">{titulo}</span>
-          <span className="sans-strong">{destaque}</span>
-        </h2>
+        <div className="section-head" style={{ marginBottom: 40 }}>
+          <span className="eyebrow-mono">{destaque}</span>
+          <h2 className="section-title-new">{titulo}</h2>
+        </div>
         {grupos.length === 0 ? (
           <EmptyGrid label={emptyLabel} />
         ) : (
@@ -143,6 +146,14 @@ export default async function Home() {
   const acessorios = products.filter((p) => p.categoria?.grupo === "acessorios");
   const destaques = products.filter((p) => p.destaque).slice(0, 4);
 
+  const categoriasVisiveis: Categoria[] = [
+    ...new Map(
+      products
+        .filter((p) => p.categoria)
+        .map((p) => [p.categoria!.id, p.categoria!] as const)
+    ).values(),
+  ].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
+
   return (
     <>
       <Header />
@@ -165,12 +176,14 @@ export default async function Home() {
 
       <TrustStrip />
 
+      <CategoryChips categorias={categoriasVisiveis} />
+
       <section className="section" id="destaques">
         <div className="wrap">
-          <h2 className="section-title" style={{ marginBottom: 40 }}>
-            <span className="serif">Destaques</span>
-            <span className="sans-strong">da loja</span>
-          </h2>
+          <div className="section-head" style={{ marginBottom: 40 }}>
+            <span className="eyebrow-mono">da loja</span>
+            <h2 className="section-title-new">Destaques</h2>
+          </div>
           {destaques.length ? (
             <div className="prod-grid">
               {destaques.map((p) => (
@@ -198,6 +211,8 @@ export default async function Home() {
         produtos={acessorios}
         emptyLabel="acessório"
       />
+
+      <BrandStory />
 
       <PaymentsStrip />
       <SiteFooter />
