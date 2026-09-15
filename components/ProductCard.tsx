@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { precoVarejo, precoAtacado, precisaNumeracao, type Product } from "@/lib/types";
+import { corDaCategoria } from "@/lib/brand.config";
+import SwingTag from "@/components/SwingTag";
 
 export default function ProductCard({
   product,
@@ -25,11 +27,16 @@ export default function ProductCard({
     modo === "atacado"
       ? precoAtacado(product, product.categoria)
       : precoVarejo(product);
+  const cor = corDaCategoria(product.categoria);
 
   return (
     <div className="prod-card">
       <Link href={href} className="imgwrap" style={{ display: "block" }}>
-        {product.destaque && <span className="badge">Destaque</span>}
+        {product.destaque && (
+          <span className="badge" style={{ background: cor.base }}>
+            Destaque
+          </span>
+        )}
         {img ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={img} alt={product.nome} />
@@ -56,25 +63,15 @@ export default function ProductCard({
         <Link href={href}>
           <h3>{product.nome}</h3>
         </Link>
-        <div className="price">
-          {temDesconto ? (
-            <>
-              <span
-                style={{
-                  textDecoration: "line-through",
-                  color: "var(--muted)",
-                  fontSize: "0.8em",
-                  fontWeight: 400,
-                  marginRight: 6,
-                }}
-              >
-                {product.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </span>
-              {precoFinal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-            </>
-          ) : (
-            precoFinal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+        <div className="price-row">
+          {temDesconto && (
+            <span className="price-old">
+              {product.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            </span>
           )}
+          <SwingTag color={cor.base} size="sm" rotate={-3}>
+            {precoFinal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          </SwingTag>
         </div>
         {precisaNumeracao(product.categoria?.grupo) && (
           <div className="sizes">

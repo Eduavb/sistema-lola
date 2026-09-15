@@ -26,7 +26,7 @@ export function SiteFooter() {
             <span
               style={{
                 display: "block",
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-display), sans-serif",
                 fontSize: 20,
                 letterSpacing: "0.14em",
                 color: "var(--ink-soft)",
@@ -85,6 +85,9 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
+        <div className="footer-wordmark" aria-hidden="true">
+          {BRAND.nome}
+        </div>
         <div
           style={{
             borderTop: "1px solid var(--line)",
@@ -100,6 +103,19 @@ export function SiteFooter() {
           <span>{`© ${new Date().getFullYear()} ${BRAND.nome}`}</span>
         </div>
       </div>
+      <style>{`
+        .footer-wordmark {
+          font-family: var(--font-display), sans-serif;
+          font-weight: 800;
+          font-size: var(--fs-wordmark);
+          line-height: 0.85;
+          text-align: center;
+          color: var(--ink);
+          opacity: 0.92;
+          margin: 8px 0 28px;
+          letter-spacing: -0.02em;
+        }
+      `}</style>
     </footer>
   );
 }
