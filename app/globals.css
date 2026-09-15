@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Fonte local licenciada (não é Google Fonts) — ver public/fonts/bacony-script.otf */
+@font-face {
+  font-family: "Bacony Script";
+  src: url("/fonts/bacony-script.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #FDF6F3;
   --surface: #FFFFFF;
@@ -22,7 +31,7 @@
   --lilac-deep: #A87EF0;
   --peach: #FFA45C;
   --peach-deep: #E8823A;
-  --font-display: "Mrs Saint Delafield", cursive;
+  --font-display: "Bacony Script", cursive;
   --font-mono: "Martian Mono", monospace;
 
   --fs-hero: clamp(40px, 8vw, 96px);
