@@ -1,20 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta provisória — trocar quando a identidade visual da LOLA for definida.
-     NÃO renomear as variáveis; os componentes referenciam estes nomes. */
-  --bg: #fbf8f2;
-  --surface: #ffffff;
-  --line: #e9e1d2;
-  --ink: #26323d;
-  --muted: #707a85;
-  --navy: #12395b;        /* cor primária */
-  --navy-deep: #0b2a44;
-  --navy-tint: #eef2f5;
-  --gold: #b08d55;        /* cor de destaque */
-  --gold-deep: #8f6f3d;
-  --font-playfair: "Playfair Display", serif;
-  --font-montserrat: "Montserrat", -apple-system, sans-serif;
+  --bg: #FDF6F3;
+  --surface: #FFFFFF;
+  --surface-muted: #F5EFEC;
+  --brand-pink: #F3C4C6;
+  --ink: #2B2420;
+  --ink-soft: #6B5B4E;
+  --accent: #FFB069;
+  --accent-deep: #E8944A;
+  --muted: #8C8079;
+  --line: #EFE0DB;
+  --font-serif: "Fraunces", serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, sans-serif;
 }
 
 * {
@@ -26,7 +24,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-montserrat), -apple-system, sans-serif;
+  font-family: var(--font-sans), -apple-system, sans-serif;
 }
 
 img {
@@ -47,13 +45,13 @@ h3 {
 }
 
 .serif {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), serif;
   font-style: italic;
   font-weight: 500;
 }
 
 .sans-strong {
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -75,7 +73,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  background: var(--navy);
+  background: var(--accent);
   color: #fff;
   padding: 16px 34px;
   font-size: 12.5px;
@@ -90,7 +88,7 @@ h3 {
 }
 
 .btn:hover {
-  background: var(--navy-deep);
+  background: var(--accent-deep);
   transform: translateY(-2px);
 }
 
@@ -132,7 +130,7 @@ h3 {
 }
 
 .section-title .sans-strong {
-  color: var(--gold-deep);
+  color: var(--accent-deep);
   margin-left: 10px;
   font-size: 26px;
 }
@@ -173,7 +171,7 @@ h3 {
 .prod-card .imgwrap {
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  background: var(--navy-tint);
+  background: var(--surface-muted);
   position: relative;
 }
 
@@ -192,7 +190,7 @@ h3 {
   position: absolute;
   top: 14px;
   left: 14px;
-  background: var(--gold);
+  background: var(--accent);
   color: #fff;
   font-size: 10.5px;
   letter-spacing: 0.06em;
@@ -215,7 +213,7 @@ h3 {
 }
 
 .prod-info h3 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), serif;
   font-weight: 500;
   font-size: 18px;
   margin-bottom: 8px;
@@ -223,7 +221,7 @@ h3 {
 
 .prod-info .price {
   font-size: 14px;
-  color: var(--navy);
+  color: var(--ink-soft);
   font-weight: 600;
 }
 
@@ -235,7 +233,7 @@ h3 {
 
 .unica {
   font-size: 10px;
-  color: var(--gold-deep);
+  color: var(--accent-deep);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 5px;
@@ -259,11 +257,11 @@ h3 {
 }
 
 .swatches button.active {
-  box-shadow: 0 0 0 1.5px var(--navy);
+  box-shadow: 0 0 0 1.5px var(--accent);
 }
 
 .prod-card.placeholder .imgwrap {
-  background: var(--navy);
+  background: var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -327,7 +325,7 @@ h3 {
 }
 
 .split-media .cap h3 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), serif;
   font-style: italic;
   font-size: 30px;
   font-weight: 500;
@@ -342,7 +340,7 @@ h3 {
 }
 
 .split-media.placeholder {
-  background: var(--navy);
+  background: var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -368,12 +366,12 @@ h3 {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--accent);
   margin-bottom: 8px;
 }
 
 .split-media.placeholder .ph-inner h3 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), serif;
   font-style: italic;
   font-size: 28px;
   font-weight: 500;
@@ -396,7 +394,7 @@ h3 {
   position: relative;
   flex: 1;
   overflow: hidden;
-  background: var(--navy);
+  background: var(--ink);
   min-height: 249px;
 }
 
@@ -431,12 +429,12 @@ h3 {
   font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--accent);
   margin-bottom: 8px;
 }
 
 .tile .label h3 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-serif), serif;
   font-style: italic;
   font-size: 24px;
   font-weight: 500;
@@ -448,7 +446,7 @@ h3 {
 }
 
 .payments {
-  background: var(--navy-tint);
+  background: var(--surface-muted);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
