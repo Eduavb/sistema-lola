@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Fonte local licenciada (não é Google Fonts) — ver public/fonts/bacony-script.otf */
+@font-face {
+  font-family: "Bacony Script";
+  src: url("/fonts/bacony-script.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #FDF6F3;
   --surface: #FFFFFF;
@@ -12,7 +21,7 @@
   --muted: #8C8079;
   --line: #EFE0DB;
   --font-serif: "Fraunces", serif;
-  --font-sans: "Onest", -apple-system, sans-serif;
+  --font-sans: "Hanken Grotesk", -apple-system, sans-serif;
 
   --pink: #FF8FAB;
   --pink-deep: #F2678F;
@@ -22,8 +31,8 @@
   --lilac-deep: #A87EF0;
   --peach: #FFA45C;
   --peach-deep: #E8823A;
-  --font-display: "Bricolage Grotesque", sans-serif;
-  --font-mono: "Space Mono", monospace;
+  --font-display: "Bacony Script", cursive;
+  --font-mono: "Martian Mono", monospace;
 
   --fs-hero: clamp(40px, 8vw, 96px);
   --fs-h2: clamp(28px, 5vw, 48px);
