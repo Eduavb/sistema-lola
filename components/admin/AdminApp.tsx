@@ -408,7 +408,7 @@ export default function AdminApp({
                                   ? "#b23b3b"
                                   : estoque < 5
                                     ? "var(--accent)"
-                                    : "var(--accent)",
+                                    : "var(--ink-soft)",
                               whiteSpace: "nowrap",
                             }}
                           >
