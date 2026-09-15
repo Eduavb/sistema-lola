@@ -153,7 +153,7 @@ export default function CategoriasTab({
       >
         <h2
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-serif)",
             fontStyle: "italic",
             fontSize: 24,
           }}
@@ -170,7 +170,7 @@ export default function CategoriasTab({
       {form && (
         <div
           style={{
-            border: "1px solid var(--navy)",
+            border: "1px solid var(--ink-soft)",
             padding: 20,
             marginBottom: 28,
           }}

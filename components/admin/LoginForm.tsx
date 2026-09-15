@@ -29,11 +29,11 @@ export default function LoginForm() {
       >
         <h1
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-serif)",
             fontStyle: "italic",
             fontWeight: 500,
             fontSize: 26,
-            color: "var(--navy)",
+            color: "var(--ink-soft)",
             marginBottom: 6,
             textAlign: "center",
           }}

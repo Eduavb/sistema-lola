@@ -154,7 +154,7 @@ export default function ProductEditor({
         style={{
           background: "none",
           border: "none",
-          color: "var(--navy)",
+          color: "var(--accent)",
           fontSize: 12.5,
           cursor: "pointer",
           marginBottom: 20,
@@ -165,7 +165,7 @@ export default function ProductEditor({
 
       <h2
         style={{
-          fontFamily: "var(--font-playfair)",
+          fontFamily: "var(--font-serif)",
           fontStyle: "italic",
           fontSize: 22,
           marginBottom: 22,
@@ -636,8 +636,8 @@ function ColorRow({
             onClick={handleAddSize}
             style={{
               fontSize: 12,
-              border: "1px solid var(--navy)",
-              background: "var(--navy)",
+              border: "1px solid var(--accent)",
+              background: "var(--accent)",
               color: "#fff",
               padding: "6px 12px",
               cursor: "pointer",
@@ -754,7 +754,7 @@ function ColorForm({
   }
 
   return (
-    <div style={{ border: "1px solid var(--navy)", padding: 16, marginBottom: 14 }}>
+    <div style={{ border: "1px solid var(--ink-soft)", padding: 16, marginBottom: 14 }}>
       <div
         style={{ display: "flex", gap: 14, marginBottom: 12, alignItems: "center" }}
       >

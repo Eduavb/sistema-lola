@@ -37,7 +37,7 @@ export default function SalesTab({
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 12 }}>
-        <h2 style={{ fontFamily: "var(--font-playfair)", fontStyle: "italic", fontSize: 24 }}>Financeiro</h2>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 24 }}>Financeiro</h2>
         <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: 1, background: "var(--line)", border: "1px solid var(--line)" }}>
             {FILTROS.map((f) => (
@@ -45,7 +45,7 @@ export default function SalesTab({
                 key={f.key}
                 onClick={() => onFiltro(f.key)}
                 style={{
-                  background: filtro === f.key ? "var(--navy)" : "var(--surface)",
+                  background: filtro === f.key ? "var(--accent)" : "var(--surface)",
                   color: filtro === f.key ? "#fff" : "var(--muted)",
                   border: "none",
                   padding: "7px 16px",
@@ -67,15 +67,15 @@ export default function SalesTab({
       <div style={{ display: "flex", gap: 16, marginBottom: 26, flexWrap: "wrap" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total geral</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--navy)" }}>{brl(total)}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{brl(total)}</div>
         </div>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Este mês</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--navy)" }}>{brl(totalMes)}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{brl(totalMes)}</div>
         </div>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vendas registradas</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--navy)" }}>{sales.length}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{sales.length}</div>
         </div>
       </div>
 
@@ -114,7 +114,7 @@ export default function SalesTab({
                 <td style={{ padding: "8px 6px", color: "var(--muted)" }}>
                   {s.produto_cor || "—"} {s.produto_tamanho ? `/ ${s.produto_tamanho}` : ""}
                   {s.origem === "mercado_pago" && !s.produto_tamanho && (
-                    <div style={{ color: "var(--gold-deep)", fontSize: 11 }}>baixar estoque manualmente</div>
+                    <div style={{ color: "var(--accent)", fontSize: 11 }}>baixar estoque manualmente</div>
                   )}
                 </td>
                 <td style={{ padding: "8px 6px" }}>{s.quantidade}</td>
@@ -185,7 +185,7 @@ function SaleForm({ products, onDone }: { products: Product[]; onDone: () => voi
   }
 
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--navy)", padding: 20, marginBottom: 26 }}>
+    <div style={{ background: "var(--surface)", border: "1px solid var(--ink-soft)", padding: 20, marginBottom: 26 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
         <select
           value={produtoId}

@@ -36,7 +36,7 @@ const cardStyle: React.CSSProperties = {
 };
 const okStyle: React.CSSProperties = {
   fontSize: 12.5,
-  color: "var(--navy)",
+  color: "var(--accent)",
   marginTop: 10,
 };
 
@@ -112,7 +112,7 @@ export default function ConfigTab({
     <div>
       <h2
         style={{
-          fontFamily: "var(--font-playfair)",
+          fontFamily: "var(--font-serif)",
           fontStyle: "italic",
           fontSize: 24,
           marginBottom: 22,

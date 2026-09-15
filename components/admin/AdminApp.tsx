@@ -183,7 +183,7 @@ export default function AdminApp({
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <header
         style={{
-          background: "var(--navy)",
+          background: "var(--ink)",
           color: "#fff",
           padding: "18px 32px",
           display: "flex",
@@ -193,7 +193,7 @@ export default function AdminApp({
           gap: 16,
         }}
       >
-        <div style={{ fontFamily: "var(--font-playfair)", fontStyle: "italic", fontSize: 20 }}>
+        <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 20 }}>
           {`Painel ${BRAND.nome}`}
         </div>
         <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
@@ -259,7 +259,7 @@ export default function AdminApp({
               >
                 <h2
                   style={{
-                    fontFamily: "var(--font-playfair)",
+                    fontFamily: "var(--font-serif)",
                     fontStyle: "italic",
                     fontSize: 24,
                   }}
@@ -306,7 +306,7 @@ export default function AdminApp({
                             style={{
                               width: 46,
                               height: 46,
-                              background: "var(--navy-tint)",
+                              background: "var(--surface-muted)",
                               flex: "none",
                               overflow: "hidden",
                               border: "none",
@@ -345,7 +345,7 @@ export default function AdminApp({
                                 <span
                                   style={{
                                     fontSize: 10.5,
-                                    color: "var(--gold-deep)",
+                                    color: "var(--accent)",
                                     fontWeight: 400,
                                   }}
                                 >
@@ -357,7 +357,7 @@ export default function AdminApp({
                                 <span
                                   style={{
                                     fontSize: 10.5,
-                                    color: "var(--navy)",
+                                    color: "var(--accent)",
                                     fontWeight: 600,
                                   }}
                                 >
@@ -407,8 +407,8 @@ export default function AdminApp({
                                 estoque === 0
                                   ? "#b23b3b"
                                   : estoque < 5
-                                    ? "var(--gold-deep)"
-                                    : "var(--navy)",
+                                    ? "var(--accent)"
+                                    : "var(--accent)",
                               whiteSpace: "nowrap",
                             }}
                           >
@@ -426,8 +426,8 @@ export default function AdminApp({
                             style={{
                               border: p.ativo
                                 ? "1px solid var(--line)"
-                                : "1px solid var(--navy)",
-                              background: p.ativo ? "none" : "var(--navy)",
+                                : "1px solid var(--accent)",
+                              background: p.ativo ? "none" : "var(--accent)",
                               color: p.ativo ? "var(--muted)" : "#fff",
                               padding: "8px 12px",
                               fontSize: 12,
@@ -476,10 +476,10 @@ export default function AdminApp({
                             }
                             style={{
                               border: p.surpresa_ativo
-                                ? "1px solid var(--navy)"
+                                ? "1px solid var(--accent)"
                                 : "1px solid var(--line)",
                               background: p.surpresa_ativo
-                                ? "var(--navy)"
+                                ? "var(--accent)"
                                 : "none",
                               color: p.surpresa_ativo ? "#fff" : "var(--muted)",
                               padding: "8px 12px",

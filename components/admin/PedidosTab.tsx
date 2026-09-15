@@ -58,7 +58,7 @@ export default function PedidosTab({
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 12 }}>
-        <h2 style={{ fontFamily: "var(--font-playfair)", fontStyle: "italic", fontSize: 24 }}>
+        <h2 style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 24 }}>
           Pedidos ({orders.length})
         </h2>
         <div style={{ display: "flex", gap: 1, background: "var(--line)", border: "1px solid var(--line)" }}>
@@ -67,7 +67,7 @@ export default function PedidosTab({
               key={f.key}
               onClick={() => onFiltro(f.key)}
               style={{
-                background: filtro === f.key ? "var(--navy)" : "var(--surface)",
+                background: filtro === f.key ? "var(--accent)" : "var(--surface)",
                 color: filtro === f.key ? "#fff" : "var(--muted)",
                 border: "none",
                 padding: "7px 16px",
@@ -112,8 +112,8 @@ export default function PedidosTab({
                             marginLeft: 8,
                             fontSize: 10.5,
                             fontWeight: 600,
-                            color: "var(--navy)",
-                            border: "1px solid var(--navy)",
+                            color: "var(--accent)",
+                            border: "1px solid var(--accent)",
                             padding: "1px 6px",
                           }}
                         >
@@ -137,7 +137,7 @@ export default function PedidosTab({
                       onClick={() => handleSettle(o.id)}
                       disabled={salvandoId === o.id}
                       style={{
-                        background: "var(--navy)",
+                        background: "var(--accent)",
                         color: "#fff",
                         border: "none",
                         padding: "8px 12px",
