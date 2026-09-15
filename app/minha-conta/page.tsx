@@ -34,7 +34,7 @@ export default function MinhaContaPage() {
         <div className="wrap" style={{ maxWidth: 640 }}>
           <h1
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-serif)",
               fontStyle: "italic",
               fontWeight: 500,
               fontSize: 28,
@@ -116,7 +116,7 @@ export default function MinhaContaPage() {
                       style={{
                         fontSize: 12.5,
                         fontWeight: 600,
-                        color: "var(--navy)",
+                        color: "var(--accent)",
                         whiteSpace: "nowrap",
                       }}
                     >

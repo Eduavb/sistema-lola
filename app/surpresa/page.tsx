@@ -33,12 +33,12 @@ export default async function SurpresaPage() {
           justifyContent: "center",
           textAlign: "center",
           padding: "40px 24px",
-          background: "var(--navy)",
+          background: "var(--ink)",
         }}
       >
         <span
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-serif)",
             fontSize: 26,
             letterSpacing: "0.16em",
             color: "#fff",
@@ -50,7 +50,7 @@ export default async function SurpresaPage() {
         <span style={{ fontSize: 34, marginBottom: 18 }}>🎁</span>
         <h1
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-serif)",
             fontStyle: "italic",
             fontWeight: 500,
             fontSize: 26,

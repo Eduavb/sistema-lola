@@ -120,7 +120,7 @@ export default async function PedidoPage({
           </div>
           <h1
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-serif)",
               fontStyle: "italic",
               fontWeight: 500,
               fontSize: 26,
@@ -130,7 +130,7 @@ export default async function PedidoPage({
             Obrigada pela compra, {order.cliente_nome.split(" ")[0]}!
           </h1>
           <p style={{ fontSize: 13.5, color: "var(--muted)", marginBottom: 24 }}>
-            Status: <strong style={{ color: "var(--navy)" }}>{ORDER_STATUS_LABEL[order.status]}</strong>
+            Status: <strong style={{ color: "var(--ink-soft)" }}>{ORDER_STATUS_LABEL[order.status]}</strong>
           </p>
 
           <div style={cardStyle}>
@@ -187,7 +187,7 @@ export default async function PedidoPage({
                   justifyContent: "space-between",
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "var(--navy)",
+                  color: "var(--accent)",
                 }}
               >
                 <span>Total</span>

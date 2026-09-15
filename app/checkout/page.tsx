@@ -146,7 +146,7 @@ export default function CheckoutPage() {
         <div className="wrap" style={{ maxWidth: 760 }}>
           <h1
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-serif)",
               fontStyle: "italic",
               fontWeight: 500,
               fontSize: 28,
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
 
           {!hydrated ? (
             <div style={{ padding: "40px 0" }}>
-              <div style={{ height: 14, width: 180, background: "var(--navy-tint)", borderRadius: 4 }} />
+              <div style={{ height: 14, width: 180, background: "var(--surface-muted)", borderRadius: 4 }} />
             </div>
           ) : items.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
                           padding: "12px 14px",
                           border:
                             dados.entregaTipo === op.valor
-                              ? "1.5px solid var(--navy)"
+                              ? "1.5px solid var(--accent)"
                               : "1px solid var(--line)",
                           cursor: "pointer",
                           fontSize: 13.5,
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
                           onChange={() => set("entregaTipo", op.valor)}
                         />
                         <span>
-                          <strong style={{ color: "var(--navy)" }}>{op.titulo}</strong>
+                          <strong style={{ color: "var(--ink-soft)" }}>{op.titulo}</strong>
                           <br />
                           <span style={{ color: "var(--muted)", fontSize: 12 }}>{op.descricao}</span>
                         </span>
@@ -245,7 +245,7 @@ export default function CheckoutPage() {
                       display: "flex",
                       flexDirection: "column",
                       gap: 14,
-                      background: "var(--navy-tint)",
+                      background: "var(--surface-muted)",
                       padding: 18,
                     }}
                   >
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                       justifyContent: "space-between",
                       fontSize: 18,
                       fontWeight: 600,
-                      color: "var(--navy)",
+                      color: "var(--accent)",
                       marginTop: 4,
                     }}
                   >

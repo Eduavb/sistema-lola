@@ -17,7 +17,7 @@ export default function CarrinhoPage() {
         <div className="wrap" style={{ maxWidth: 760 }}>
           <h1
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-serif)",
               fontStyle: "italic",
               fontWeight: 500,
               fontSize: 28,
@@ -29,7 +29,7 @@ export default function CarrinhoPage() {
 
           {!hydrated ? (
             <div style={{ padding: "40px 0" }}>
-              <div style={{ height: 14, width: 180, background: "var(--navy-tint)", borderRadius: 4 }} />
+              <div style={{ height: 14, width: 180, background: "var(--surface-muted)", borderRadius: 4 }} />
             </div>
           ) : items.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
@@ -69,7 +69,7 @@ export default function CarrinhoPage() {
                         style={{
                           width: 64,
                           height: 64,
-                          background: "var(--navy-tint)",
+                          background: "var(--surface-muted)",
                           flex: "none",
                           overflow: "hidden",
                         }}
@@ -91,7 +91,7 @@ export default function CarrinhoPage() {
                         <div
                           style={{
                             fontSize: 12.5,
-                            color: "var(--navy)",
+                            color: "var(--accent)",
                             fontWeight: 600,
                             marginTop: 4,
                           }}
@@ -181,7 +181,7 @@ export default function CarrinhoPage() {
                 <span style={{ fontSize: 13, color: "var(--muted)" }}>
                   Subtotal ({totalItens} {totalItens === 1 ? "item" : "itens"})
                 </span>
-                <span style={{ fontSize: 20, fontWeight: 600, color: "var(--navy)" }}>
+                <span style={{ fontSize: 20, fontWeight: 600, color: "var(--accent)" }}>
                   {totalValor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
               </div>

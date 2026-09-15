@@ -37,7 +37,7 @@ function EmptyGrid({ label }: { label: string }) {
       }}
     >
       Nenhum {label} cadastrado ainda. Cadastre no{" "}
-      <a href="/admin" style={{ color: "var(--navy)", textDecoration: "underline" }}>
+      <a href="/admin" style={{ color: "var(--ink-soft)", textDecoration: "underline" }}>
         painel
       </a>{" "}
       pra essa vitrine ganhar vida.
@@ -111,9 +111,9 @@ function GrupoSection({
               {mostrarSubtitulos && (
                 <h3
                   style={{
-                    fontFamily: "var(--font-playfair)",
+                    fontFamily: "var(--font-serif)",
                     fontSize: 20,
-                    color: "var(--navy)",
+                    color: "var(--ink-soft)",
                     marginBottom: 20,
                   }}
                 >
