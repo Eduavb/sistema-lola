@@ -80,7 +80,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <div
         style={{
-          background: "var(--navy)",
+          background: "var(--ink)",
           color: "#fff",
           textAlign: "center",
           padding: "10px 16px",
@@ -116,10 +116,10 @@ export default function SurpresaOffer({ product }: { product: Product }) {
           <Link
             href="/"
             style={{
-              fontFamily: "var(--font-playfair)",
+              fontFamily: "var(--font-serif)",
               fontSize: 20,
               letterSpacing: "0.14em",
-              color: "var(--navy)",
+              color: "var(--ink-soft)",
             }}
           >
             {BRAND.nome}
@@ -128,9 +128,9 @@ export default function SurpresaOffer({ product }: { product: Product }) {
             href={BRAND.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: 12, color: "var(--navy)", display: "flex", alignItems: "center", gap: 7 }}
+            style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 7 }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" strokeWidth={1.5} width={17} height={17}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.5} width={17} height={17}>
               <path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20l1.02-5.4A8.5 8.5 0 1 1 21 11.5z" />
             </svg>
             <span className="wa-label">Dúvidas no WhatsApp</span>
@@ -160,7 +160,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
                   fontSize: 11,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
-                  color: "var(--gold-deep)",
+                  color: "var(--accent-deep)",
                   fontWeight: 700,
                   marginBottom: 14,
                 }}
@@ -182,7 +182,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
               )}
               <h1
                 style={{
-                  fontFamily: "var(--font-playfair)",
+                  fontFamily: "var(--font-serif)",
                   fontWeight: 500,
                   fontSize: 34,
                   marginBottom: 14,
@@ -190,7 +190,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
               >
                 {product.nome}
               </h1>
-              <div style={{ fontSize: 26, color: "var(--navy)", fontWeight: 700, marginBottom: 24 }}>
+              <div style={{ fontSize: 26, color: "var(--accent-deep)", fontWeight: 700, marginBottom: 24 }}>
                 {temDesconto ? (
                   <>
                     <span
@@ -232,7 +232,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
                 >
                   {product.caracteristicas.map((c, i) => (
                     <li key={i} style={{ paddingLeft: 16, position: "relative" }}>
-                      <span style={{ position: "absolute", left: 0, color: "var(--gold-deep)" }}>—</span>
+                      <span style={{ position: "absolute", left: 0, color: "var(--accent-deep)" }}>—</span>
                       {c}
                     </li>
                   ))}
@@ -255,7 +255,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
                           height: 28,
                           borderRadius: "50%",
                           background: c.hex || "#ccc",
-                          border: i === colorIdx ? "2px solid var(--navy)" : "2px solid var(--surface)",
+                          border: i === colorIdx ? "2px solid var(--accent)" : "2px solid var(--surface)",
                           boxShadow: "0 0 0 1px var(--line)",
                           cursor: "pointer",
                         }}
@@ -290,8 +290,8 @@ export default function SurpresaOffer({ product }: { product: Product }) {
                               minWidth: 46,
                               padding: "11px 12px",
                               fontSize: 13.5,
-                              border: sizeId === s.id ? "1.5px solid var(--navy)" : "1px solid var(--line)",
-                              background: esgotado ? "var(--navy-tint)" : sizeId === s.id ? "var(--navy)" : "var(--surface)",
+                              border: sizeId === s.id ? "1.5px solid var(--accent)" : "1px solid var(--line)",
+                              background: esgotado ? "var(--surface-muted)" : sizeId === s.id ? "var(--accent)" : "var(--surface)",
                               color: esgotado ? "var(--muted)" : sizeId === s.id ? "#fff" : "var(--ink)",
                               cursor: esgotado ? "not-allowed" : "pointer",
                               textDecoration: esgotado ? "line-through" : "none",

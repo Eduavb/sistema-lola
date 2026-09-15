@@ -85,7 +85,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
         <h1
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-serif)",
             fontWeight: 500,
             fontSize: 32,
             marginBottom: 12,
@@ -93,7 +93,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         >
           {product.nome}
         </h1>
-        <div style={{ fontSize: 20, color: "var(--navy)", fontWeight: 600, marginBottom: 24 }}>
+        <div style={{ fontSize: 20, color: "var(--accent-deep)", fontWeight: 600, marginBottom: 24 }}>
           {temDesconto ? (
             <>
               <span
@@ -135,7 +135,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           >
             {product.caracteristicas.map((c, i) => (
               <li key={i} style={{ paddingLeft: 16, position: "relative" }}>
-                <span style={{ position: "absolute", left: 0, color: "var(--gold-deep)" }}>—</span>
+                <span style={{ position: "absolute", left: 0, color: "var(--accent-deep)" }}>—</span>
                 {c}
               </li>
             ))}
@@ -158,7 +158,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                     height: 26,
                     borderRadius: "50%",
                     background: c.hex || "#ccc",
-                    border: i === colorIdx ? "2px solid var(--navy)" : "2px solid var(--surface)",
+                    border: i === colorIdx ? "2px solid var(--accent)" : "2px solid var(--surface)",
                     boxShadow: "0 0 0 1px var(--line)",
                     cursor: "pointer",
                   }}
@@ -193,8 +193,8 @@ export default function ProductDetail({ product }: { product: Product }) {
                         minWidth: 44,
                         padding: "10px 12px",
                         fontSize: 13,
-                        border: sizeId === s.id ? "1.5px solid var(--navy)" : "1px solid var(--line)",
-                        background: esgotado ? "var(--navy-tint)" : sizeId === s.id ? "var(--navy)" : "var(--surface)",
+                        border: sizeId === s.id ? "1.5px solid var(--accent)" : "1px solid var(--line)",
+                        background: esgotado ? "var(--surface-muted)" : sizeId === s.id ? "var(--accent)" : "var(--surface)",
                         color: esgotado ? "var(--muted)" : sizeId === s.id ? "#fff" : "var(--ink)",
                         cursor: esgotado ? "not-allowed" : "pointer",
                         textDecoration: esgotado ? "line-through" : "none",
