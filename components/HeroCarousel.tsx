@@ -194,7 +194,6 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           font-family: var(--font-sans), sans-serif;
           font-size: 13px;
           color: var(--ink);
-          opacity: 0.65;
           margin: 0;
         }
       `}</style>

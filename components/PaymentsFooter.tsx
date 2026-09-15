@@ -26,7 +26,7 @@ export function SiteFooter() {
             <span
               style={{
                 display: "block",
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-display), sans-serif",
                 fontSize: 20,
                 letterSpacing: "0.14em",
                 color: "var(--ink-soft)",

@@ -114,7 +114,7 @@ function GrupoSection({
               {mostrarSubtitulos && (
                 <h3
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-display), sans-serif",
                     fontSize: 20,
                     color: "var(--ink-soft)",
                     marginBottom: 20,

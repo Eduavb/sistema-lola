@@ -91,7 +91,6 @@ export default function BrandStory() {
           letter-spacing: 0.05em;
           text-transform: uppercase;
           color: var(--ink);
-          opacity: 0.55;
         }
         .collage-ph--a { transform: translateY(-18px); background: var(--pink); border: none; }
         .collage-ph--b { transform: translateY(14px); }
