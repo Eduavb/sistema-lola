@@ -46,7 +46,7 @@ export default function SalesTab({
                 onClick={() => onFiltro(f.key)}
                 style={{
                   background: filtro === f.key ? "var(--accent)" : "var(--surface)",
-                  color: filtro === f.key ? "#fff" : "var(--muted)",
+                  color: filtro === f.key ? "var(--ink)" : "var(--muted)",
                   border: "none",
                   padding: "7px 16px",
                   fontSize: 12.5,
@@ -67,15 +67,15 @@ export default function SalesTab({
       <div style={{ display: "flex", gap: 16, marginBottom: 26, flexWrap: "wrap" }}>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total geral</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{brl(total)}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)" }}>{brl(total)}</div>
         </div>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Este mês</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{brl(totalMes)}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)" }}>{brl(totalMes)}</div>
         </div>
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", padding: "18px 22px", flex: 1, minWidth: 180 }}>
           <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vendas registradas</div>
-          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--accent)" }}>{sales.length}</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)" }}>{sales.length}</div>
         </div>
       </div>
 

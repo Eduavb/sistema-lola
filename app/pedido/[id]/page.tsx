@@ -187,7 +187,7 @@ export default async function PedidoPage({
                   justifyContent: "space-between",
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "var(--accent)",
+                  color: "var(--ink)",
                 }}
               >
                 <span>Total</span>

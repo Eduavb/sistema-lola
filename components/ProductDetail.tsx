@@ -93,7 +93,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         >
           {product.nome}
         </h1>
-        <div style={{ fontSize: 20, color: "var(--accent)", fontWeight: 600, marginBottom: 24 }}>
+        <div style={{ fontSize: 20, color: "var(--ink)", fontWeight: 600, marginBottom: 24 }}>
           {temDesconto ? (
             <>
               <span
@@ -195,7 +195,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                         fontSize: 13,
                         border: sizeId === s.id ? "1.5px solid var(--accent)" : "1px solid var(--line)",
                         background: esgotado ? "var(--surface-muted)" : sizeId === s.id ? "var(--accent)" : "var(--surface)",
-                        color: esgotado ? "var(--muted)" : sizeId === s.id ? "#fff" : "var(--ink)",
+                        color: esgotado ? "var(--muted)" : "var(--ink)",
                         cursor: esgotado ? "not-allowed" : "pointer",
                         textDecoration: esgotado ? "line-through" : "none",
                       }}

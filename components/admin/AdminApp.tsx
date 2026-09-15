@@ -428,7 +428,7 @@ export default function AdminApp({
                                 ? "1px solid var(--line)"
                                 : "1px solid var(--accent)",
                               background: p.ativo ? "none" : "var(--accent)",
-                              color: p.ativo ? "var(--muted)" : "#fff",
+                              color: p.ativo ? "var(--muted)" : "var(--ink)",
                               padding: "8px 12px",
                               fontSize: 12,
                               cursor: busy ? "wait" : "pointer",
@@ -481,7 +481,7 @@ export default function AdminApp({
                               background: p.surpresa_ativo
                                 ? "var(--accent)"
                                 : "none",
-                              color: p.surpresa_ativo ? "#fff" : "var(--muted)",
+                              color: p.surpresa_ativo ? "var(--ink)" : "var(--muted)",
                               padding: "8px 12px",
                               fontSize: 12,
                               cursor: busy ? "wait" : "pointer",

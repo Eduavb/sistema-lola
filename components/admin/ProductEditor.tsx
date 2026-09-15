@@ -154,7 +154,7 @@ export default function ProductEditor({
         style={{
           background: "none",
           border: "none",
-          color: "var(--accent)",
+          color: "var(--ink)",
           fontSize: 12.5,
           cursor: "pointer",
           marginBottom: 20,

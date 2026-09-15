@@ -116,7 +116,7 @@ export default function MinhaContaPage() {
                       style={{
                         fontSize: 12.5,
                         fontWeight: 600,
-                        color: "var(--accent)",
+                        color: "var(--ink)",
                         whiteSpace: "nowrap",
                       }}
                     >

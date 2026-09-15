@@ -74,7 +74,7 @@ h3 {
   align-items: center;
   gap: 12px;
   background: var(--accent);
-  color: #fff;
+  color: var(--ink);
   padding: 16px 34px;
   font-size: 12.5px;
   letter-spacing: 0.12em;
@@ -191,7 +191,7 @@ h3 {
   top: 14px;
   left: 14px;
   background: var(--accent);
-  color: #fff;
+  color: var(--ink);
   font-size: 10.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;

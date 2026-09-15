@@ -190,7 +190,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
               >
                 {product.nome}
               </h1>
-              <div style={{ fontSize: 26, color: "var(--accent)", fontWeight: 700, marginBottom: 24 }}>
+              <div style={{ fontSize: 26, color: "var(--ink)", fontWeight: 700, marginBottom: 24 }}>
                 {temDesconto ? (
                   <>
                     <span
@@ -292,7 +292,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
                               fontSize: 13.5,
                               border: sizeId === s.id ? "1.5px solid var(--accent)" : "1px solid var(--line)",
                               background: esgotado ? "var(--surface-muted)" : sizeId === s.id ? "var(--accent)" : "var(--surface)",
-                              color: esgotado ? "var(--muted)" : sizeId === s.id ? "#fff" : "var(--ink)",
+                              color: esgotado ? "var(--muted)" : "var(--ink)",
                               cursor: esgotado ? "not-allowed" : "pointer",
                               textDecoration: esgotado ? "line-through" : "none",
                             }}

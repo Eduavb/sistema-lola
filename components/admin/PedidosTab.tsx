@@ -68,7 +68,7 @@ export default function PedidosTab({
               onClick={() => onFiltro(f.key)}
               style={{
                 background: filtro === f.key ? "var(--accent)" : "var(--surface)",
-                color: filtro === f.key ? "#fff" : "var(--muted)",
+                color: filtro === f.key ? "var(--ink)" : "var(--muted)",
                 border: "none",
                 padding: "7px 16px",
                 fontSize: 12.5,
@@ -138,7 +138,7 @@ export default function PedidosTab({
                       disabled={salvandoId === o.id}
                       style={{
                         background: "var(--accent)",
-                        color: "#fff",
+                        color: "var(--ink)",
                         border: "none",
                         padding: "8px 12px",
                         fontSize: 12,

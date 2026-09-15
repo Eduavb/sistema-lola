@@ -91,7 +91,7 @@ export default function CarrinhoPage() {
                         <div
                           style={{
                             fontSize: 12.5,
-                            color: "var(--accent)",
+                            color: "var(--ink)",
                             fontWeight: 600,
                             marginTop: 4,
                           }}
@@ -181,7 +181,7 @@ export default function CarrinhoPage() {
                 <span style={{ fontSize: 13, color: "var(--muted)" }}>
                   Subtotal ({totalItens} {totalItens === 1 ? "item" : "itens"})
                 </span>
-                <span style={{ fontSize: 20, fontWeight: 600, color: "var(--accent)" }}>
+                <span style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)" }}>
                   {totalValor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
               </div>

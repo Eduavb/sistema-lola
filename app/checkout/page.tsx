@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                       justifyContent: "space-between",
                       fontSize: 18,
                       fontWeight: 600,
-                      color: "var(--accent)",
+                      color: "var(--ink)",
                       marginTop: 4,
                     }}
                   >
