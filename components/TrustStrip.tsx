@@ -49,7 +49,7 @@ export default function TrustStrip() {
           };
           const content = (
             <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" strokeWidth={1.4} width={26} height={26}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.4} width={26} height={26}>
                 {it.icon}
               </svg>
               <div>

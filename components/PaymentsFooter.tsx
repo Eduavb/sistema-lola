@@ -26,10 +26,10 @@ export function SiteFooter() {
             <span
               style={{
                 display: "block",
-                fontFamily: "var(--font-playfair)",
+                fontFamily: "var(--font-serif)",
                 fontSize: 20,
                 letterSpacing: "0.14em",
-                color: "var(--navy)",
+                color: "var(--ink-soft)",
                 marginBottom: 14,
               }}
             >
@@ -50,7 +50,7 @@ export function SiteFooter() {
                 background: "#fff",
               }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" strokeWidth={1.4} width={16} height={16} style={{ flex: "none" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.4} width={16} height={16} style={{ flex: "none" }}>
                 <path d="M12 3l7 3.5v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9v-5L12 3z" />
               </svg>
               <span style={{ fontSize: 11.5, color: "var(--muted)", lineHeight: 1.3 }}>

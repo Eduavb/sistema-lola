@@ -17,7 +17,7 @@ export default function Header() {
 
   return (
     <>
-      <div style={{ background: "var(--navy)", color: "#fff" }}>
+      <div style={{ background: "var(--ink)", color: "#fff" }}>
         <div
           className="wrap"
           style={{
@@ -64,13 +64,13 @@ export default function Header() {
               border: "none",
               padding: 4,
               cursor: "pointer",
-              color: "var(--navy)",
+              color: "var(--ink-soft)",
             }}
           >
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--navy)"
+              stroke="var(--ink-soft)"
               strokeWidth={1.6}
               width={23}
               height={23}
@@ -82,10 +82,10 @@ export default function Header() {
             {/* TODO: trocar por <img> quando a logo existir */}
             <span
               style={{
-                fontFamily: "var(--font-playfair)",
+                fontFamily: "var(--font-serif)",
                 fontSize: 24,
                 letterSpacing: "0.14em",
-                color: "var(--navy)",
+                color: "var(--ink-soft)",
                 lineHeight: 1,
               }}
             >
@@ -109,13 +109,13 @@ export default function Header() {
               </a>
             ))}
           </nav>
-          <div style={{ display: "flex", gap: 18, color: "var(--navy)", alignItems: "center" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" strokeWidth={1.5} width={19} height={19} aria-hidden="true">
+          <div style={{ display: "flex", gap: 18, color: "var(--ink-soft)", alignItems: "center" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.5} width={19} height={19} aria-hidden="true">
               <circle cx="11" cy="11" r="7" />
               <path d="M21 21l-4.3-4.3" />
             </svg>
-            <Link href="/carrinho" style={{ position: "relative", display: "flex", color: "var(--navy)" }} aria-label="Carrinho">
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--navy)" strokeWidth={1.5} width={20} height={20}>
+            <Link href="/carrinho" style={{ position: "relative", display: "flex", color: "var(--ink-soft)" }} aria-label="Carrinho">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.5} width={20} height={20}>
                 <path d="M6 8h12l-1.2 11.2a1.5 1.5 0 0 1-1.5 1.3H8.7a1.5 1.5 0 0 1-1.5-1.3L6 8z" />
                 <path d="M9 8V6a3 3 0 0 1 6 0v2" />
               </svg>
@@ -125,7 +125,7 @@ export default function Header() {
                     position: "absolute",
                     top: -7,
                     right: -8,
-                    background: "var(--gold-deep)",
+                    background: "var(--accent-deep)",
                     color: "#fff",
                     fontSize: 9.5,
                     fontWeight: 700,
