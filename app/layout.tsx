@@ -22,7 +22,7 @@ export default function RootLayout({
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Unbounded:wght@400..900&family=Hanken+Grotesk:wght@400..800&family=Martian+Mono:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Mrs+Saint+Delafield&family=Hanken+Grotesk:wght@400..800&family=Martian+Mono:wght@400;700&display=swap"
         />
       </head>
       <body>
