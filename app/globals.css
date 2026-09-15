@@ -471,18 +471,22 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 46px;
-  padding: 30px 32px;
+  gap: 14px;
+  padding: 22px 32px;
   flex-wrap: wrap;
 }
 
 .payments .item {
-  font-size: 11.5px;
-  letter-spacing: 0.1em;
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 600;
-  opacity: 0.8;
+  color: var(--ink);
+  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 16px;
 }
 
 /* "Passe o mouse..." só faz sentido em telas com mouse (desktop) */
