@@ -103,7 +103,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 width: `${100 / slides.length}%`,
                 height: "100%",
                 flex: "none",
-                background: "var(--navy)",
+                background: "var(--brand-pink)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -118,7 +118,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               >
                 <h3
                   style={{
-                    fontFamily: "var(--font-playfair)",
+                    fontFamily: "var(--font-serif)",
                     fontStyle: "italic",
                     fontWeight: 500,
                     color: "#fff",

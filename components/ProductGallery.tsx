@@ -35,7 +35,7 @@ export default function ProductGallery({
         style={{
           aspectRatio: "4/5",
           overflow: "hidden",
-          background: "var(--navy-tint)",
+          background: "var(--surface-muted)",
           border: "1px solid var(--line)",
           cursor: src ? "zoom-in" : "default",
         }}
@@ -82,11 +82,11 @@ export default function ProductGallery({
                 width: 64,
                 height: 64,
                 border:
-                  i === active ? "2px solid var(--navy)" : "1px solid var(--line)",
+                  i === active ? "2px solid var(--ink-soft)" : "1px solid var(--line)",
                 padding: 0,
                 cursor: "pointer",
                 overflow: "hidden",
-                background: "var(--navy-tint)",
+                background: "var(--surface-muted)",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
