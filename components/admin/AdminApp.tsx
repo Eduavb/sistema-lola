@@ -345,7 +345,7 @@ export default function AdminApp({
                                 <span
                                   style={{
                                     fontSize: 10.5,
-                                    color: "var(--accent)",
+                                    color: "var(--accent-deep)",
                                     fontWeight: 400,
                                   }}
                                 >
@@ -357,7 +357,7 @@ export default function AdminApp({
                                 <span
                                   style={{
                                     fontSize: 10.5,
-                                    color: "var(--accent)",
+                                    color: "var(--ink-soft)",
                                     fontWeight: 600,
                                   }}
                                 >

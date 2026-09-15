@@ -112,7 +112,7 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             >
               <div
                 style={{
-                  border: "1px dashed rgba(255,255,255,.35)",
+                  border: "1px dashed rgba(43,36,32,.35)",
                   padding: "34px 44px",
                 }}
               >
@@ -121,14 +121,14 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                     fontFamily: "var(--font-serif)",
                     fontStyle: "italic",
                     fontWeight: 500,
-                    color: "#fff",
+                    color: "var(--ink)",
                     fontSize: "clamp(22px,4vw,30px)",
                     marginBottom: 8,
                   }}
                 >
                   {s.placeholderLabel ?? "Banner"}
                 </h3>
-                <p style={{ color: "rgba(255,255,255,.7)", fontSize: 12.5, letterSpacing: "0.03em", margin: 0 }}>
+                <p style={{ color: "var(--ink-soft)", fontSize: 12.5, letterSpacing: "0.03em", margin: 0 }}>
                   Espaço reservado — aguardando imagem
                 </p>
               </div>

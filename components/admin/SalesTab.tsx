@@ -114,7 +114,7 @@ export default function SalesTab({
                 <td style={{ padding: "8px 6px", color: "var(--muted)" }}>
                   {s.produto_cor || "—"} {s.produto_tamanho ? `/ ${s.produto_tamanho}` : ""}
                   {s.origem === "mercado_pago" && !s.produto_tamanho && (
-                    <div style={{ color: "var(--accent)", fontSize: 11 }}>baixar estoque manualmente</div>
+                    <div style={{ color: "var(--accent-deep)", fontSize: 11 }}>baixar estoque manualmente</div>
                   )}
                 </td>
                 <td style={{ padding: "8px 6px" }}>{s.quantidade}</td>
