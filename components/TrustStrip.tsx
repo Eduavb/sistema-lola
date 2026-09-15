@@ -32,32 +32,23 @@ const ITEMS = [
 
 export default function TrustStrip() {
   return (
-    <section style={{ borderBottom: "1px solid var(--line)", background: "var(--surface)" }}>
-      <div
-        className="wrap trust-grid"
-        style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", padding: "26px 32px" }}
-      >
+    <section className="trust-strip">
+      <div className="wrap trust-grid">
         {ITEMS.map((it, i) => {
-          const itemStyle: CSSProperties = {
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "0 18px",
-            borderLeft: i === 0 ? "none" : "1px solid var(--line)",
-            color: "inherit",
-            textDecoration: "none",
-          };
           const content = (
             <>
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={1.4} width={26} height={26}>
-                {it.icon}
-              </svg>
+              <span className="trust-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={1.4} width={22} height={22}>
+                  {it.icon}
+                </svg>
+              </span>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: "0.02em" }}>{it.t1}</div>
-                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{it.t2}</div>
+                <div className="trust-t1">{it.t1}</div>
+                <div className="trust-t2">{it.t2}</div>
               </div>
             </>
           );
+          const itemStyle: CSSProperties = { color: "inherit", textDecoration: "none" };
           return it.href ? (
             <a key={i} href={it.href} target="_blank" rel="noopener noreferrer" className="trust-item" style={itemStyle}>
               {content}
@@ -70,13 +61,38 @@ export default function TrustStrip() {
         })}
       </div>
       <style>{`
+        .trust-strip { background: var(--bg); padding: 8px 0 28px; }
+        .trust-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 14px;
+        }
+        .trust-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: var(--surface);
+          border: 1px solid var(--line);
+          border-radius: 16px;
+          padding: 14px 16px;
+        }
+        .trust-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: var(--peach);
+          flex: none;
+        }
+        .trust-t1 { font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; }
+        .trust-t2 { font-size: 11px; color: var(--muted); margin-top: 2px; }
         @media (max-width: 820px) {
-          .trust-grid { grid-template-columns: repeat(2,1fr) !important; row-gap: 20px; }
-          .trust-item:nth-child(odd) { border-left: none !important; padding-left: 0 !important; }
+          .trust-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 520px) {
-          .trust-grid { grid-template-columns: 1fr !important; }
-          .trust-item { border-left: none !important; padding-left: 0 !important; }
+          .trust-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </section>
