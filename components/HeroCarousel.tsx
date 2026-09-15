@@ -97,7 +97,16 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               )}
             </div>
           ) : (
-            <div key={i} className="hero-placeholder">
+            <div
+              key={i}
+              className="hero-placeholder"
+              style={{
+                position: "relative",
+                width: `${100 / slides.length}%`,
+                height: "100%",
+                flex: "none",
+              }}
+            >
               <div className="hero-placeholder-grain" aria-hidden />
               <div className="hero-placeholder-inner fade-up">
                 <SwingTag color="var(--peach)" size="lg" rotate={-6}>
@@ -153,10 +162,6 @@ export default function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           .hero-img-mobile { display: block; }
         }
         .hero-placeholder {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          flex: none;
           display: flex;
           align-items: center;
           justify-content: center;
