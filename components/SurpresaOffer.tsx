@@ -190,7 +190,7 @@ export default function SurpresaOffer({ product }: { product: Product }) {
               >
                 {product.nome}
               </h1>
-              <div style={{ fontSize: 26, color: "var(--accent-deep)", fontWeight: 700, marginBottom: 24 }}>
+              <div style={{ fontSize: 26, color: "var(--accent)", fontWeight: 700, marginBottom: 24 }}>
                 {temDesconto ? (
                   <>
                     <span

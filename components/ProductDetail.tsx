@@ -93,7 +93,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         >
           {product.nome}
         </h1>
-        <div style={{ fontSize: 20, color: "var(--accent-deep)", fontWeight: 600, marginBottom: 24 }}>
+        <div style={{ fontSize: 20, color: "var(--accent)", fontWeight: 600, marginBottom: 24 }}>
           {temDesconto ? (
             <>
               <span
