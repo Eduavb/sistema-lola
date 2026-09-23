@@ -6,6 +6,7 @@ export type SwingTagSize = "sm" | "md" | "lg";
 export default function SwingTag({
   children,
   color = "var(--peach)",
+  textColor = "var(--ink)",
   size = "sm",
   rotate = -4,
   href,
@@ -14,6 +15,7 @@ export default function SwingTag({
 }: {
   children: ReactNode;
   color?: string;
+  textColor?: string;
   size?: SwingTagSize;
   rotate?: number;
   href?: string;
@@ -23,6 +25,7 @@ export default function SwingTag({
   const style = {
     "--tag-color": color,
     "--tag-rotate": `${rotate}deg`,
+    color: textColor,
   } as CSSProperties;
   const cls = `swing-tag swing-tag--${size}${className ? ` ${className}` : ""}`;
 

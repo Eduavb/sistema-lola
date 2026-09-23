@@ -38,6 +38,16 @@
   --fs-h2: clamp(28px, 5vw, 48px);
   --fs-h3: clamp(20px, 3vw, 28px);
   --fs-wordmark: clamp(64px, 14vw, 180px);
+  --adm-text-secondary: #8A7A70;
+  --adm-success-bg: #EAFBF4;
+  --adm-success-text: #2E7D63;
+  --adm-purple-bg: #F2ECFF;
+  --adm-purple-text: #6E56B8;
+  --adm-orange-bg: #FFF3E8;
+  --adm-orange-text: #C46A1F;
+  --adm-pink-bg: #FFF0F4;
+  --adm-pink-text: #C4416F;
+  --adm-trend-positive: #3FA383;
 }
 
 * {
