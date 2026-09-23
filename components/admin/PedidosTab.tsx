@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { Order, OrderStatus } from "@/lib/types";
 import { ORDER_STATUS_LABEL, entregaTipoLabel } from "@/lib/types";
 import { updateOrderStatus, settleOrder } from "@/app/admin/actions";
+import SwingTag from "@/components/SwingTag";
+import { corStatus } from "@/lib/admin-status";
 
 type Filtro = "todos" | "varejo" | "atacado";
 
@@ -15,6 +17,21 @@ const FILTROS: { key: Filtro; label: string }[] = [
   { key: "varejo", label: "Varejo" },
   { key: "atacado", label: "Atacado" },
 ];
+
+// Label curto por status, reconhecido por `corStatus` (ver lib/admin-status.ts).
+// Diferente de ORDER_STATUS_LABEL (usado no <select>, com texto mais longo/descritivo).
+const STATUS_TAG_LABEL: Record<OrderStatus, string> = {
+  pendente: "Pendente",
+  pago: "Pago",
+  preparando: "Preparando",
+  enviado: "Enviado",
+  pronto_retirada: "Pronto para retirada",
+  entregue: "Entregue",
+  retirado: "Retirado",
+  cancelado: "Cancelado",
+};
+
+const COLS = "110px 1.5fr 90px 70px 110px 170px 100px 280px";
 
 const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -56,24 +73,25 @@ export default function PedidosTab({
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <h2 style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 24 }}>
           Pedidos ({orders.length})
         </h2>
-        <div style={{ display: "flex", gap: 1, background: "var(--line)", border: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", gap: 6, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 10, padding: 4 }}>
           {FILTROS.map((f) => (
             <button
               key={f.key}
               onClick={() => onFiltro(f.key)}
               style={{
-                background: filtro === f.key ? "var(--accent)" : "var(--surface)",
-                color: filtro === f.key ? "var(--ink)" : "var(--muted)",
                 border: "none",
-                padding: "7px 16px",
-                fontSize: 12.5,
+                borderRadius: 8,
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
                 cursor: "pointer",
-                letterSpacing: "0.03em",
+                background: filtro === f.key ? "var(--peach)" : "transparent",
+                color: filtro === f.key ? "var(--ink)" : "var(--adm-text-secondary)",
               }}
             >
               {f.label}
@@ -82,92 +100,102 @@ export default function PedidosTab({
         </div>
       </div>
 
-      {orders.length === 0 ? (
-        <p style={{ fontSize: 13.5, color: "var(--muted)" }}>Nenhum pedido neste filtro.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--line)" }}>
-          {orders.map((o) => {
+      <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, overflowX: "auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: COLS, minWidth: 1100, padding: "14px 20px", fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--adm-text-secondary)", letterSpacing: "0.04em", borderBottom: "1px solid var(--line)" }}>
+          <div>PEDIDO</div>
+          <div>CLIENTE / REVENDEDOR</div>
+          <div>TIPO</div>
+          <div>ITENS</div>
+          <div>VALOR</div>
+          <div>ENTREGA</div>
+          <div>DATA</div>
+          <div>AÇÕES</div>
+        </div>
+
+        {orders.length === 0 ? (
+          <div style={{ padding: 24, fontSize: 13, color: "var(--adm-text-secondary)" }}>
+            Nenhum pedido neste filtro.
+          </div>
+        ) : (
+          orders.map((o) => {
             const opcoes = o.entrega_tipo !== "retirada" ? OPCOES_ENTREGA : OPCOES_RETIRADA;
             const aberto = expandedId === o.id;
+            const cor = corStatus(STATUS_TAG_LABEL[o.status]);
             return (
-              <div key={o.id} style={{ background: "var(--surface)" }}>
+              <div key={o.id}>
                 <div
+                  onClick={() => setExpandedId(aberto ? null : o.id)}
                   style={{
-                    padding: "14px 18px",
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: COLS,
+                    minWidth: 1100,
+                    padding: "14px 20px",
                     alignItems: "center",
-                    gap: 16,
-                    flexWrap: "wrap",
+                    borderBottom: "1px solid var(--line)",
+                    cursor: "pointer",
                   }}
                 >
-                  <button
-                    onClick={() => setExpandedId(aberto ? null : o.id)}
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", flex: 1, minWidth: 220 }}
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, fontWeight: 600 }}>
+                    #{o.id.slice(0, 8)}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {o.cliente_nome}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: o.is_atacado ? "var(--adm-purple-text)" : "var(--adm-text-secondary)", fontWeight: o.is_atacado ? 600 : 400 }}>
+                    {o.is_atacado ? "Atacado" : "Varejo"}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--adm-text-secondary)" }}>{o.items.length}</div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600 }}>{brl(o.valor_total)}</div>
+                  <div>
+                    <SwingTag color={cor.bg} textColor={cor.text} size="sm">
+                      {STATUS_TAG_LABEL[o.status]}
+                    </SwingTag>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--adm-text-secondary)" }}>
+                    {new Date(o.created_at).toLocaleDateString("pt-BR")}
+                  </div>
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                   >
-                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-                      #{o.id.slice(0, 8)} · {o.cliente_nome}
-                      {o.is_atacado && (
-                        <span
-                          style={{
-                            marginLeft: 8,
-                            fontSize: 10.5,
-                            fontWeight: 600,
-                            color: "var(--accent)",
-                            border: "1px solid var(--accent)",
-                            padding: "1px 6px",
-                          }}
-                        >
-                          Atacado
-                        </span>
-                      )}
-                      <span style={{ fontWeight: 400, color: "var(--muted)" }}>
-                        {" "}
-                        · {new Date(o.created_at).toLocaleDateString("pt-BR")}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>
-                      {entregaTipoLabel(o.entrega_tipo)} ·{" "}
-                      {o.items.length} item(ns) · {brl(o.valor_total)}
-                      {o.entrega_tipo === "entrega_fora" ? " · frete a combinar" : ""}
-                    </div>
-                  </button>
+                    {o.status === "pendente" && (
+                      <button
+                        onClick={() => handleSettle(o.id)}
+                        disabled={salvandoId === o.id}
+                        style={{
+                          background: "var(--peach)",
+                          color: "var(--ink)",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "7px 12px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Marcar como pago
+                      </button>
+                    )}
 
-                  {o.status === "pendente" && (
-                    <button
-                      onClick={() => handleSettle(o.id)}
+                    <select
+                      value={o.status}
                       disabled={salvandoId === o.id}
-                      style={{
-                        background: "var(--accent)",
-                        color: "var(--ink)",
-                        border: "none",
-                        padding: "8px 12px",
-                        fontSize: 12,
-                        cursor: "pointer",
-                        letterSpacing: "0.03em",
-                      }}
+                      onChange={(e) => handleStatus(o.id, e.target.value as OrderStatus)}
+                      style={{ padding: "7px 8px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 12 }}
                     >
-                      Marcar como pago
-                    </button>
-                  )}
-
-                  <select
-                    value={o.status}
-                    disabled={salvandoId === o.id}
-                    onChange={(e) => handleStatus(o.id, e.target.value as OrderStatus)}
-                    style={{ padding: "8px 10px", border: "1px solid var(--line)", fontSize: 12.5 }}
-                  >
-                    {opcoes.map((s) => (
-                      <option key={s} value={s}>
-                        {ORDER_STATUS_LABEL[s]}
-                      </option>
-                    ))}
-                  </select>
+                      {opcoes.map((s) => (
+                        <option key={s} value={s}>
+                          {ORDER_STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {aberto && (
-                  <div style={{ padding: "0 18px 18px", display: "flex", gap: 32, flexWrap: "wrap" }}>
+                  <div style={{ padding: "16px 20px", display: "flex", gap: 32, flexWrap: "wrap", borderBottom: "1px solid var(--line)" }}>
                     <div>
-                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--adm-text-secondary)", marginBottom: 8 }}>
                         Itens
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -181,8 +209,12 @@ export default function PedidosTab({
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--adm-text-secondary)", marginBottom: 8 }}>
                         {o.entrega_tipo !== "retirada" ? "Endereço de entrega" : "Retirada"}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--adm-text-secondary)", marginBottom: 6 }}>
+                        {entregaTipoLabel(o.entrega_tipo)}
+                        {o.entrega_tipo === "entrega_fora" ? " · frete a combinar" : ""}
                       </div>
                       {o.entrega_tipo !== "retirada" ? (
                         <p style={{ fontSize: 12.5, color: "var(--ink)", lineHeight: 1.6, margin: 0 }}>
@@ -194,16 +226,16 @@ export default function PedidosTab({
                           {o.endereco_cep ? ` · CEP ${o.endereco_cep}` : ""}
                         </p>
                       ) : (
-                        <p style={{ fontSize: 12.5, color: "var(--muted)", margin: 0 }}>Cliente retira na loja.</p>
+                        <p style={{ fontSize: 12.5, color: "var(--adm-text-secondary)", margin: 0 }}>Cliente retira na loja.</p>
                       )}
                     </div>
                   </div>
                 )}
               </div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 }
