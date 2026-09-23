@@ -407,3 +407,73 @@ export async function saveConfig(payload: {
   if (error) return { error: error.message };
   return {};
 }
+
+// --- Revendedores (mutations) ---------------------------------------------
+
+export type Revendedor = {
+  id: string;
+  nome: string;
+  cidade: string;
+  status: "pendente" | "aprovado" | "recusado";
+  created_at: string;
+};
+
+export async function fetchRevendedores(
+  p_status: string = "todos"
+): Promise<Revendedor[]> {
+  const secret = await getSecret();
+  if (!secret) return [];
+  const { data, error } = await supabase().rpc("admin_list_revendedores", {
+    p_secret: secret,
+    p_status,
+  });
+  if (error) return [];
+  return (data ?? []) as Revendedor[];
+}
+
+export async function setRevendedorStatus(
+  id: string,
+  status: "pendente" | "aprovado" | "recusado"
+): Promise<{ error?: string }> {
+  const secret = await getSecret();
+  if (!secret) return { error: "Não autenticado." };
+  const { error } = await supabase().rpc("admin_set_revendedor_status", {
+    p_secret: secret,
+    p_id: id,
+    p_status: status,
+  });
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function upsertRevendedor(payload: {
+  id: string | null;
+  nome: string;
+  cidade: string;
+}): Promise<{ error?: string; id?: string }> {
+  const secret = await getSecret();
+  if (!secret) return { error: "Não autenticado." };
+  const { data, error } = await supabase().rpc("admin_upsert_revendedor", {
+    p_secret: secret,
+    p_id: payload.id,
+    p_nome: payload.nome,
+    p_cidade: payload.cidade,
+  });
+  if (error) return { error: error.message };
+  return { id: data as string };
+}
+
+export async function setDestaque(
+  id: string,
+  destaque: boolean
+): Promise<{ error?: string }> {
+  const secret = await getSecret();
+  if (!secret) return { error: "Não autenticado." };
+  const { error } = await supabase().rpc("admin_set_destaque", {
+    p_secret: secret,
+    p_id: id,
+    p_destaque: destaque,
+  });
+  if (error) return { error: error.message };
+  return {};
+}
