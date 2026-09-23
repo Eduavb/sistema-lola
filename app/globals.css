@@ -640,3 +640,8 @@ button.swing-tag {
   color: var(--muted);
   text-decoration: line-through;
 }
+
+input[type="checkbox"].swtoggle { appearance:none; width:36px; height:20px; border-radius:10px; background:var(--line); position:relative; cursor:pointer; outline:none; transition:background .15s; }
+input[type="checkbox"].swtoggle:checked { background:var(--mint); }
+input[type="checkbox"].swtoggle::after { content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left .15s; box-shadow:0 1px 2px rgba(43,36,32,.25); }
+input[type="checkbox"].swtoggle:checked::after { left:18px; }
