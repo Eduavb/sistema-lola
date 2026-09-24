@@ -30,9 +30,9 @@ export default function Header() {
           </svg>
         </button>
 
-        <Link href="/" className="site-logo">
-          {/* TODO: trocar por <img> quando a logo existir */}
-          {BRAND.nome}
+        <Link href="/" className="site-logo" aria-label={BRAND.nome}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lola-logo.png" alt={BRAND.nome} />
         </Link>
 
         <nav className="nav-main" aria-label="Categorias">
@@ -84,12 +84,14 @@ export default function Header() {
           box-shadow: 0 1px 0 var(--line), 0 12px 28px -20px rgba(43,36,32,.35);
         }
         .site-logo {
-          font-family: var(--font-display), sans-serif;
-          font-weight: 800;
-          font-size: 22px;
-          letter-spacing: -0.01em;
-          color: var(--ink);
+          display: flex;
+          align-items: center;
           flex: none;
+        }
+        .site-logo img {
+          height: 30px;
+          width: auto;
+          display: block;
         }
         .nav-main { display: flex; gap: 6px; }
         .nav-link {
@@ -112,7 +114,7 @@ export default function Header() {
           position: absolute;
           top: -7px;
           right: -8px;
-          background: var(--peach);
+          background: var(--brand-orange);
           color: var(--ink);
           font-size: 9.5px;
           font-weight: 700;

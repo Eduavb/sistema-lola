@@ -54,17 +54,9 @@ export default function AdminSidebar({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px" }}>
-        <Link
-          href="/"
-          target="_blank"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 22,
-            color: "var(--ink)",
-            lineHeight: 1,
-          }}
-        >
-          {BRAND.nome}
+        <Link href="/" target="_blank" aria-label={BRAND.nome} style={{ display: "flex", alignItems: "center" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lola-logo.png" alt={BRAND.nome} style={{ height: 24, width: "auto", display: "block" }} />
         </Link>
         <span
           style={{
@@ -105,7 +97,7 @@ export default function AdminSidebar({
                 padding: "10px 12px",
                 borderRadius: 10,
                 cursor: "pointer",
-                border: "none",
+                borderLeft: active ? "3px solid var(--brand-orange)" : "3px solid transparent",
                 background: active ? "var(--adm-orange-bg)" : "transparent",
                 color: active ? "var(--adm-orange-text)" : "var(--ink)",
                 font: "inherit",
@@ -154,7 +146,7 @@ export default function AdminSidebar({
             width: 34,
             height: 34,
             borderRadius: "50%",
-            background: "linear-gradient(135deg, var(--pink), var(--lilac))",
+            background: "linear-gradient(135deg, var(--brand-magenta), var(--brand-orange))",
             flex: "none",
           }}
         />

@@ -22,19 +22,12 @@ export function SiteFooter() {
           style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", gap: 40, marginBottom: 40 }}
         >
           <div>
-            {/* TODO: trocar por <img> quando a logo existir */}
-            <span
-              style={{
-                display: "block",
-                fontFamily: "var(--font-display), sans-serif",
-                fontSize: 20,
-                letterSpacing: "0.14em",
-                color: "var(--ink-soft)",
-                marginBottom: 14,
-              }}
-            >
-              {BRAND.nome}
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/lola-logo.png"
+              alt={BRAND.nome}
+              style={{ display: "block", height: 26, width: "auto", marginBottom: 14 }}
+            />
             <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, maxWidth: "34ch", margin: 0 }}>
               {`${BRAND.nome} — ${BRAND.tagline}.`}
             </p>
@@ -86,7 +79,8 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="footer-wordmark" aria-hidden="true">
-          {BRAND.nome}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lola-logo.png" alt="" />
         </div>
         <div
           style={{
@@ -105,15 +99,14 @@ export function SiteFooter() {
       </div>
       <style>{`
         .footer-wordmark {
-          font-family: var(--font-display), sans-serif;
-          font-weight: 800;
-          font-size: var(--fs-wordmark);
-          line-height: 0.85;
-          text-align: center;
-          color: var(--ink);
-          opacity: 0.92;
+          display: flex;
+          justify-content: center;
           margin: 8px 0 28px;
-          letter-spacing: -0.02em;
+        }
+        .footer-wordmark img {
+          width: clamp(180px, 26vw, 380px);
+          height: auto;
+          display: block;
         }
       `}</style>
     </footer>
