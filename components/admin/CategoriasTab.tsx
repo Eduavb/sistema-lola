@@ -9,19 +9,21 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   border: "1px solid var(--line)",
+  borderRadius: 8,
   fontSize: 13.5,
   marginBottom: 6,
+  boxSizing: "border-box",
 };
 const labelStyle: React.CSSProperties = {
   fontSize: 11.5,
   letterSpacing: "0.04em",
-  color: "var(--muted)",
+  color: "var(--adm-text-secondary)",
   display: "block",
   marginBottom: 6,
 };
 const hintStyle: React.CSSProperties = {
   fontSize: 11,
-  color: "var(--muted)",
+  color: "var(--adm-text-secondary)",
   marginBottom: 14,
 };
 
@@ -151,17 +153,23 @@ export default function CategoriasTab({
           marginBottom: 22,
         }}
       >
-        <h2
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontSize: 24,
-          }}
-        >
+        <h2 style={{ fontSize: 20, fontWeight: 600 }}>
           Categorias ({categorias.length})
         </h2>
         {!form && (
-          <button className="btn" onClick={openNova}>
+          <button
+            onClick={openNova}
+            style={{
+              background: "var(--peach)",
+              color: "var(--ink)",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 16px",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
             + Nova categoria
           </button>
         )}
@@ -170,7 +178,9 @@ export default function CategoriasTab({
       {form && (
         <div
           style={{
-            border: "1px solid var(--ink-soft)",
+            background: "var(--surface)",
+            border: "1px solid var(--line)",
+            borderRadius: 16,
             padding: 20,
             marginBottom: 28,
           }}
@@ -290,9 +300,18 @@ export default function CategoriasTab({
 
           <div style={{ display: "flex", gap: 10 }}>
             <button
-              className="btn"
               onClick={handleSave}
               disabled={saving}
+              style={{
+                background: "var(--peach)",
+                color: "var(--ink)",
+                border: "none",
+                borderRadius: 10,
+                padding: "10px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: saving ? "wait" : "pointer",
+              }}
             >
               {saving ? "Salvando…" : form.id ? "Salvar alterações" : "Criar categoria"}
             </button>
@@ -301,7 +320,7 @@ export default function CategoriasTab({
               style={{
                 background: "none",
                 border: "none",
-                color: "var(--muted)",
+                color: "var(--adm-text-secondary)",
                 fontSize: 12.5,
                 cursor: "pointer",
               }}
@@ -313,7 +332,7 @@ export default function CategoriasTab({
       )}
 
       {categorias.length === 0 ? (
-        <p style={{ color: "var(--muted)", fontSize: 13.5 }}>
+        <p style={{ color: "var(--adm-text-secondary)", fontSize: 13.5 }}>
           Nenhuma categoria cadastrada ainda.
         </p>
       ) : (
@@ -329,7 +348,7 @@ export default function CategoriasTab({
                   fontSize: 13,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
-                  color: "var(--muted)",
+                  color: "var(--adm-text-secondary)",
                   marginBottom: 10,
                 }}
               >
@@ -337,10 +356,10 @@ export default function CategoriasTab({
               </h3>
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 1,
-                  background: "var(--line)",
+                  background: "var(--surface)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16,
+                  overflow: "hidden",
                 }}
               >
                 {doGrupo.map((c) => {
@@ -349,12 +368,12 @@ export default function CategoriasTab({
                     <div
                       key={c.id}
                       style={{
-                        background: "var(--surface)",
                         padding: "14px 18px",
                         display: "flex",
                         alignItems: "center",
                         gap: 16,
                         flexWrap: "wrap",
+                        borderBottom: "1px solid var(--line)",
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 200 }}>
@@ -364,7 +383,7 @@ export default function CategoriasTab({
                             <span
                               style={{
                                 fontSize: 10.5,
-                                color: "var(--muted)",
+                                color: "var(--adm-text-secondary)",
                                 fontWeight: 400,
                               }}
                             >
@@ -372,7 +391,7 @@ export default function CategoriasTab({
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                        <div style={{ fontSize: 12, color: "var(--adm-text-secondary)" }}>
                           /{c.slug} · ordem {c.ordem} · ativa:{" "}
                           {c.ativo ? "sim" : "não"} · atacado:{" "}
                           {c.desconto_atacado_percentual != null
@@ -386,6 +405,7 @@ export default function CategoriasTab({
                         style={{
                           background: "none",
                           border: "1px solid var(--line)",
+                          borderRadius: 8,
                           padding: "8px 14px",
                           fontSize: 12,
                           cursor: "pointer",
@@ -399,10 +419,11 @@ export default function CategoriasTab({
                         style={{
                           background: "none",
                           border: "1px solid var(--line)",
+                          borderRadius: 8,
                           padding: "8px 14px",
                           fontSize: 12,
                           cursor: busy ? "wait" : "pointer",
-                          color: "#b23b3b",
+                          color: "var(--adm-pink-text)",
                         }}
                       >
                         Excluir

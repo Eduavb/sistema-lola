@@ -12,6 +12,7 @@ export function corStatus(status: string): { bg: string; text: string } {
     "Em preparação": { bg: "var(--adm-orange-bg)", text: "var(--adm-orange-text)" },
     "Preparando": { bg: "var(--adm-orange-bg)", text: "var(--adm-orange-text)" },
     "Pendente": { bg: "var(--adm-orange-bg)", text: "var(--adm-orange-text)" },
+    "Cadastro pendente": { bg: "var(--adm-orange-bg)", text: "var(--adm-orange-text)" },
     "Aguardando pagamento": { bg: "var(--adm-orange-bg)", text: "var(--adm-orange-text)" },
     "Cancelado": { bg: "var(--adm-pink-bg)", text: "var(--adm-pink-text)" },
     "Recusado": { bg: "var(--adm-pink-bg)", text: "var(--adm-pink-text)" },
