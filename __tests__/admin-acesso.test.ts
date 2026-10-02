@@ -27,6 +27,8 @@ const ACOES: AcaoAdmin[] = [
   "config",
   "revendedores",
   "revendedores-status",
+  "textos",
+  "banner",
 ];
 
 function permitidas(papel: Papel): AcaoAdmin[] {
@@ -77,14 +79,34 @@ describe("screens do admin", () => {
     for (const s of ADMIN_SCREENS) expect(TELA_DA_SCREEN[s]).toBe(s);
   });
 
-  it("superadmin e admin veem as cinco screens existentes, na ordem", () => {
-    const todas: AdminScreen[] = ["visao-geral", "pedidos", "produtos", "financeiro", "revendedores"];
+  it("superadmin e admin veem todas as screens existentes, na ordem", () => {
+    const todas: AdminScreen[] = [
+      "visao-geral",
+      "pedidos",
+      "produtos",
+      "financeiro",
+      "revendedores",
+      "banner",
+      "textos",
+    ];
     expect(screensVisiveis("superadmin")).toEqual(todas);
     expect(screensVisiveis("admin")).toEqual(todas);
   });
 
   it("supervisor vê visão geral, pedidos e revendedores", () => {
     expect(screensVisiveis("supervisor")).toEqual(["visao-geral", "pedidos", "revendedores"]);
+  });
+
+  it("supervisor não vê Aparência e não executa textos nem banner", () => {
+    expect(screensVisiveis("supervisor")).not.toContain("banner");
+    expect(screensVisiveis("supervisor")).not.toContain("textos");
+    expect(podeExecutar("supervisor", "textos")).toBe(false);
+    expect(podeExecutar("supervisor", "banner")).toBe(false);
+    expect(decidirAcesso({ papel: "supervisor", ativo: true }, "banner")).toEqual({
+      ok: false,
+      error: MSG_SEM_PERMISSAO,
+      encerrarSessao: false,
+    });
   });
 
   it("papéis fora da equipe não veem nada", () => {

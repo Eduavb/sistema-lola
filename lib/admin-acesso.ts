@@ -1,7 +1,14 @@
 import type { EntregaTipo, OrderStatus } from "@/lib/types";
 import { podeAcessar, type Papel, type Tela } from "@/lib/roles";
 
-export type AdminScreen = "visao-geral" | "pedidos" | "produtos" | "financeiro" | "revendedores";
+export type AdminScreen =
+  | "visao-geral"
+  | "pedidos"
+  | "produtos"
+  | "financeiro"
+  | "revendedores"
+  | "banner"
+  | "textos";
 
 export const ADMIN_SCREENS: AdminScreen[] = [
   "visao-geral",
@@ -9,6 +16,8 @@ export const ADMIN_SCREENS: AdminScreen[] = [
   "produtos",
   "financeiro",
   "revendedores",
+  "banner",
+  "textos",
 ];
 
 export const TELA_DA_SCREEN: Record<AdminScreen, Tela> = {
@@ -17,6 +26,8 @@ export const TELA_DA_SCREEN: Record<AdminScreen, Tela> = {
   produtos: "produtos",
   financeiro: "financeiro",
   revendedores: "revendedores",
+  banner: "banner",
+  textos: "textos",
 };
 
 export function screensVisiveis(papel: Papel): AdminScreen[] {
@@ -42,7 +53,9 @@ export type AcaoAdmin =
   | "estoque-baixo"
   | "config"
   | "revendedores"
-  | "revendedores-status";
+  | "revendedores-status"
+  | "textos"
+  | "banner";
 
 const ADMINS: Papel[] = ["superadmin", "admin"];
 const EQUIPE_TODA: Papel[] = ["superadmin", "admin", "supervisor"];
@@ -57,6 +70,8 @@ const PAPEIS_DA_ACAO: Record<AcaoAdmin, Papel[]> = {
   config: ["superadmin"],
   revendedores: EQUIPE_TODA,
   "revendedores-status": ADMINS,
+  textos: ADMINS,
+  banner: ADMINS,
 };
 
 export function podeExecutar(papel: Papel, acao: AcaoAdmin): boolean {

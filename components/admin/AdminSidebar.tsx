@@ -8,6 +8,8 @@ import {
   Wallet,
   Users2,
   Settings,
+  ImageIcon,
+  Type,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand.config";
 import { rotuloPapel, type AdminScreen } from "@/lib/admin-acesso";
@@ -15,12 +17,26 @@ import type { Papel } from "@/lib/roles";
 
 export type { AdminScreen } from "@/lib/admin-acesso";
 
-const NAV_ITEMS: { key: AdminScreen; label: string; Icon: typeof LayoutDashboard }[] = [
-  { key: "visao-geral", label: "Visão geral", Icon: LayoutDashboard },
-  { key: "pedidos", label: "Pedidos", Icon: ClipboardList },
-  { key: "produtos", label: "Produtos", Icon: ShoppingBag },
-  { key: "financeiro", label: "Financeiro", Icon: Wallet },
-  { key: "revendedores", label: "Revendedores", Icon: Users2 },
+type ItemNav = { key: AdminScreen; label: string; Icon: typeof LayoutDashboard };
+
+const GRUPOS: { rotulo: string; itens: ItemNav[] }[] = [
+  {
+    rotulo: "Geral",
+    itens: [
+      { key: "visao-geral", label: "Visão geral", Icon: LayoutDashboard },
+      { key: "pedidos", label: "Pedidos", Icon: ClipboardList },
+      { key: "financeiro", label: "Financeiro", Icon: Wallet },
+    ],
+  },
+  { rotulo: "Catálogo", itens: [{ key: "produtos", label: "Produtos", Icon: ShoppingBag }] },
+  {
+    rotulo: "Aparência",
+    itens: [
+      { key: "banner", label: "Banner do hero", Icon: ImageIcon },
+      { key: "textos", label: "Textos da loja", Icon: Type },
+    ],
+  },
+  { rotulo: "Pessoas", itens: [{ key: "revendedores", label: "Revendedores", Icon: Users2 }] },
 ];
 
 export default function AdminSidebar({
@@ -50,7 +66,7 @@ export default function AdminSidebar({
         display: "flex",
         flexDirection: "column",
         padding: "24px 16px",
-        gap: 28,
+        gap: 20,
         minHeight: "100vh",
       }}
     >
@@ -72,60 +88,75 @@ export default function AdminSidebar({
         </span>
       </div>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            letterSpacing: "0.08em",
-            color: "var(--adm-text-secondary)",
-            padding: "8px 12px 4px",
-          }}
-        >
-          GERAL
-        </div>
-        {NAV_ITEMS.filter(({ key }) => screens.includes(key)).map(({ key, label, Icon }) => {
-          const active = screen === key;
+      <nav aria-label="Seções do admin" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {GRUPOS.map((grupo) => {
+          const itens = grupo.itens.filter(({ key }) => screens.includes(key));
+          if (itens.length === 0) return null;
           return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onNavigate(key)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 12px",
-                borderRadius: 10,
-                cursor: "pointer",
-                borderLeft: active ? "3px solid var(--brand-orange)" : "3px solid transparent",
-                background: active ? "var(--adm-orange-bg)" : "transparent",
-                color: active ? "var(--adm-orange-text)" : "var(--ink)",
-                font: "inherit",
-                textAlign: "left",
-              }}
+            <div
+              key={grupo.rotulo}
+              role="group"
+              aria-label={grupo.rotulo}
+              style={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-              <Icon size={18} style={{ flex: "none" }} />
-              <span style={{ fontSize: 14, fontWeight: 500, whiteSpace: "nowrap" }}>
-                {label}
-              </span>
-              {key === "revendedores" && pendingRevendedores > 0 && (
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    background: "var(--peach)",
-                    color: "var(--ink)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    borderRadius: 10,
-                    padding: "2px 7px",
-                  }}
-                >
-                  {pendingRevendedores}
-                </span>
-              )}
-            </button>
+              <div
+                aria-hidden="true"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.08em",
+                  color: "var(--adm-text-secondary)",
+                  padding: "12px 12px 4px",
+                }}
+              >
+                {grupo.rotulo.toUpperCase()}
+              </div>
+              {itens.map(({ key, label, Icon }) => {
+                const active = screen === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className="adm-nav-item"
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => onNavigate(key)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      cursor: "pointer",
+                      border: "none",
+                      borderLeft: active ? "3px solid var(--brand-orange)" : "3px solid transparent",
+                      background: active ? "var(--adm-orange-bg)" : "transparent",
+                      color: active ? "var(--adm-orange-text)" : "var(--ink)",
+                      font: "inherit",
+                      textAlign: "left",
+                    }}
+                  >
+                    <Icon size={18} style={{ flex: "none" }} />
+                    <span style={{ fontSize: 14, fontWeight: 500, whiteSpace: "nowrap" }}>{label}</span>
+                    {key === "revendedores" && pendingRevendedores > 0 && (
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          background: "var(--peach)",
+                          color: "var(--ink)",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          borderRadius: 10,
+                          padding: "2px 7px",
+                        }}
+                      >
+                        {pendingRevendedores}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
@@ -160,31 +191,31 @@ export default function AdminSidebar({
           <div style={{ fontSize: 11, color: "var(--adm-text-secondary)" }}>{rotuloPapel(perfil.papel)}</div>
         </div>
         {onOpenConfig && (
-        <button
-          type="button"
-          onClick={onOpenConfig}
-          title="Configurações"
-          aria-label="Configurações"
-          style={{
-            flex: "none",
-            width: 30,
-            height: 30,
-            borderRadius: 8,
-            border: "1px solid var(--line)",
-            background: "var(--surface)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <Settings size={16} />
-        </button>
+          <button
+            type="button"
+            className="adm-btn"
+            onClick={onOpenConfig}
+            title="Configurações"
+            aria-label="Configurações"
+            style={{
+              flex: "none",
+              width: 30,
+              height: 30,
+              padding: 0,
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Settings size={16} />
+          </button>
         )}
       </div>
 
       <button
         type="button"
+        className="adm-nav-item"
         onClick={onLogout}
         style={{
           background: "none",

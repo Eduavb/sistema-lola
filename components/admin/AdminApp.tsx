@@ -32,6 +32,9 @@ import AdminSidebar, { type AdminScreen } from "./AdminSidebar";
 import VisaoGeralTab from "./VisaoGeralTab";
 import RevendedoresTab from "./RevendedoresTab";
 import ProdutosTab from "./ProdutosTab";
+import TextosTab from "./TextosTab";
+import BannerTab from "./BannerTab";
+import Toast, { useToast } from "./Toast";
 
 type Filtro = "todos" | "varejo" | "atacado";
 
@@ -47,6 +50,8 @@ const SCREEN_TITLES: Record<AdminScreen, [string, string]> = {
   produtos: ["Produtos", "Gerencie visibilidade, destaque e desconto"],
   financeiro: ["Financeiro", "Receita, repasses e lançamentos"],
   revendedores: ["Revendedores", "Cadastros e solicitações de atacado"],
+  banner: ["Banner do hero", "O destaque principal da home da vitrine"],
+  textos: ["Textos da loja", "Avisos, rodapé e chamadas da vitrine"],
 };
 
 export default function AdminApp({
@@ -77,6 +82,7 @@ export default function AdminApp({
   const [estoqueBaixo, setEstoqueBaixo] = useState(initialEstoqueBaixo);
   const [produtosSubTab, setProdutosSubTab] = useState<"produtos" | "categorias">("produtos");
   const [configOpen, setConfigOpen] = useState(false);
+  const { mensagem: mensagemToast, mostrar: mostrarToast } = useToast();
   const [revendedores, setRevendedores] = useState<Revendedor[]>([]);
 
   const [products, setProducts] = useState(initialProducts);
@@ -389,8 +395,11 @@ export default function AdminApp({
               }}
             />
           )}
+          {screen === "banner" && <BannerTab onToast={mostrarToast} />}
+          {screen === "textos" && <TextosTab onToast={mostrarToast} />}
         </section>
       </main>
+      <Toast mensagem={mensagemToast} />
       {configOpen && ehSuperadmin && (
         <ConfigTab
           config={config}

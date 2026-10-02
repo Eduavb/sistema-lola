@@ -14,6 +14,13 @@ import type {
   RevendedorStatus,
   EstoqueBaixoItem,
 } from "@/lib/types";
+import { mesclarTextos } from "@/lib/textos";
+import {
+  montarRascunho,
+  normalizarServidor,
+  type BannerDados,
+  type BannerServidor,
+} from "@/lib/admin-banner";
 import {
   lerConfig,
   listarCategorias,
@@ -404,4 +411,57 @@ export async function upsertRevendedor(payload: {
   });
   if (error) return { error: error.message };
   return { id: data as string };
+}
+
+// --- Textos da loja e Banner do hero ----------------------------------------
+
+type ResultadoRpc = { data?: unknown; error?: string };
+
+async function chamarRpc(
+  acao: AcaoAdmin,
+  nome: string,
+  args?: Record<string, unknown>
+): Promise<ResultadoRpc> {
+  try {
+    const g = await autorizar(acao);
+    if ("error" in g) return { error: g.error };
+    const { data, error } = await g.sb.rpc(nome, args);
+    if (error) return { error: error.message };
+    return { data };
+  } catch {
+    return { error: "Não foi possível falar com o servidor agora. Tente de novo." };
+  }
+}
+
+export async function fetchTextos(): Promise<{ valores?: Record<string, string>; error?: string }> {
+  const r = await chamarRpc("textos", "get_textos");
+  if (r.error) return { error: r.error };
+  return { valores: mesclarTextos(r.data) };
+}
+
+export async function saveTextos(valores: Record<string, string>): Promise<{ error?: string }> {
+  const r = await chamarRpc("textos", "admin_set_textos", { p_valores: valores });
+  return r.error ? { error: r.error } : {};
+}
+
+export async function fetchBanner(): Promise<{ banner?: BannerServidor; error?: string }> {
+  const r = await chamarRpc("banner", "admin_get_banner_hero");
+  if (r.error) return { error: r.error };
+  const banner = normalizarServidor(r.data);
+  return banner ? { banner } : { error: "Banner não encontrado." };
+}
+
+export async function saveBannerRascunho(dados: BannerDados): Promise<{ error?: string }> {
+  const r = await chamarRpc("banner", "admin_save_banner_rascunho", { p_dados: montarRascunho(dados) });
+  return r.error ? { error: r.error } : {};
+}
+
+export async function publishBanner(): Promise<{ error?: string }> {
+  const r = await chamarRpc("banner", "admin_publish_banner");
+  return r.error ? { error: r.error } : {};
+}
+
+export async function discardBanner(): Promise<{ error?: string }> {
+  const r = await chamarRpc("banner", "admin_discard_banner");
+  return r.error ? { error: r.error } : {};
 }
