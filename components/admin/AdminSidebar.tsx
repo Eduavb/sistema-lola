@@ -10,13 +10,10 @@ import {
   Settings,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand.config";
+import { rotuloPapel, type AdminScreen } from "@/lib/admin-acesso";
+import type { Papel } from "@/lib/roles";
 
-export type AdminScreen =
-  | "visao-geral"
-  | "pedidos"
-  | "produtos"
-  | "financeiro"
-  | "revendedores";
+export type { AdminScreen } from "@/lib/admin-acesso";
 
 const NAV_ITEMS: { key: AdminScreen; label: string; Icon: typeof LayoutDashboard }[] = [
   { key: "visao-geral", label: "Visão geral", Icon: LayoutDashboard },
@@ -28,14 +25,18 @@ const NAV_ITEMS: { key: AdminScreen; label: string; Icon: typeof LayoutDashboard
 
 export default function AdminSidebar({
   screen,
+  screens,
+  perfil,
   onNavigate,
   onOpenConfig,
   onLogout,
   pendingRevendedores,
 }: {
   screen: AdminScreen;
+  screens: AdminScreen[];
+  perfil: { nome: string; papel: Papel };
   onNavigate: (s: AdminScreen) => void;
-  onOpenConfig: () => void;
+  onOpenConfig?: () => void;
   onLogout: () => void;
   pendingRevendedores: number;
 }) {
@@ -83,7 +84,7 @@ export default function AdminSidebar({
         >
           GERAL
         </div>
-        {NAV_ITEMS.map(({ key, label, Icon }) => {
+        {NAV_ITEMS.filter(({ key }) => screens.includes(key)).map(({ key, label, Icon }) => {
           const active = screen === key;
           return (
             <button
@@ -151,13 +152,19 @@ export default function AdminSidebar({
           }}
         />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>{BRAND.nome}</div>
-          <div style={{ fontSize: 11, color: "var(--adm-text-secondary)" }}>Dona da loja</div>
+          <div
+            style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+          >
+            {perfil.nome}
+          </div>
+          <div style={{ fontSize: 11, color: "var(--adm-text-secondary)" }}>{rotuloPapel(perfil.papel)}</div>
         </div>
+        {onOpenConfig && (
         <button
           type="button"
           onClick={onOpenConfig}
           title="Configurações"
+          aria-label="Configurações"
           style={{
             flex: "none",
             width: 30,
@@ -173,6 +180,7 @@ export default function AdminSidebar({
         >
           <Settings size={16} />
         </button>
+        )}
       </div>
 
       <button

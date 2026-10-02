@@ -1,0 +1,193 @@
+import { describe, it, expect } from "vitest";
+import {
+  ADMIN_SCREENS,
+  TELA_DA_SCREEN,
+  cargasIniciais,
+  opcoesStatusPedido,
+  podeExecutar,
+  rotuloPapel,
+  screenPermitida,
+  screensVisiveis,
+  type AcaoAdmin,
+  type AdminScreen,
+} from "@/lib/admin-acesso";
+import type { Papel } from "@/lib/roles";
+
+const ACOES: AcaoAdmin[] = [
+  "catalogo",
+  "vendas-escrita",
+  "liquidar",
+  "pedidos",
+  "vendas-leitura",
+  "estoque-baixo",
+  "config",
+  "revendedores",
+  "revendedores-status",
+];
+
+function permitidas(papel: Papel): AcaoAdmin[] {
+  return ACOES.filter((a) => podeExecutar(papel, a));
+}
+
+describe("podeExecutar", () => {
+  it("superadmin pode tudo", () => {
+    expect(permitidas("superadmin")).toEqual(ACOES);
+  });
+
+  it("admin pode tudo menos config", () => {
+    expect(permitidas("admin")).toEqual(ACOES.filter((a) => a !== "config"));
+  });
+
+  it("supervisor só pedidos, leitura de vendas, estoque baixo e cadastro de revendedores", () => {
+    expect(permitidas("supervisor")).toEqual([
+      "pedidos",
+      "vendas-leitura",
+      "estoque-baixo",
+      "revendedores",
+    ]);
+  });
+
+  it("supervisor não liquida pedido nem aprova revendedor", () => {
+    expect(podeExecutar("supervisor", "liquidar")).toBe(false);
+    expect(podeExecutar("supervisor", "revendedores-status")).toBe(false);
+  });
+
+  it("revendedor e cliente não executam nada do admin", () => {
+    expect(permitidas("revendedor")).toEqual([]);
+    expect(permitidas("cliente")).toEqual([]);
+  });
+});
+
+describe("rotuloPapel", () => {
+  it("rótulos em PT-BR", () => {
+    expect(rotuloPapel("superadmin")).toBe("Superadmin");
+    expect(rotuloPapel("admin")).toBe("Admin");
+    expect(rotuloPapel("supervisor")).toBe("Supervisor");
+    expect(rotuloPapel("revendedor")).toBe("Revendedor");
+    expect(rotuloPapel("cliente")).toBe("Cliente");
+  });
+});
+
+describe("screens do admin", () => {
+  it("toda screen mapeia para uma tela de lib/roles com o mesmo nome", () => {
+    for (const s of ADMIN_SCREENS) expect(TELA_DA_SCREEN[s]).toBe(s);
+  });
+
+  it("superadmin e admin veem as cinco screens existentes, na ordem", () => {
+    const todas: AdminScreen[] = ["visao-geral", "pedidos", "produtos", "financeiro", "revendedores"];
+    expect(screensVisiveis("superadmin")).toEqual(todas);
+    expect(screensVisiveis("admin")).toEqual(todas);
+  });
+
+  it("supervisor vê visão geral, pedidos e revendedores", () => {
+    expect(screensVisiveis("supervisor")).toEqual(["visao-geral", "pedidos", "revendedores"]);
+  });
+
+  it("papéis fora da equipe não veem nada", () => {
+    expect(screensVisiveis("cliente")).toEqual([]);
+    expect(screensVisiveis("revendedor")).toEqual([]);
+  });
+
+  it("screenPermitida mantém a atual quando permitida", () => {
+    expect(screenPermitida("supervisor", "pedidos")).toBe("pedidos");
+    expect(screenPermitida("admin", "financeiro")).toBe("financeiro");
+  });
+
+  it("screenPermitida cai na primeira visível quando a atual não é permitida", () => {
+    expect(screenPermitida("supervisor", "financeiro")).toBe("visao-geral");
+    expect(screenPermitida("supervisor", "produtos")).toBe("visao-geral");
+  });
+
+  it("screenPermitida devolve null sem nenhuma screen visível", () => {
+    expect(screenPermitida("cliente", "visao-geral")).toBeNull();
+  });
+});
+
+describe("cargasIniciais", () => {
+  it("superadmin carrega tudo menos estoque baixo (calculado dos produtos)", () => {
+    expect(cargasIniciais("superadmin")).toEqual({
+      produtos: true,
+      categorias: true,
+      pedidos: true,
+      vendas: true,
+      config: true,
+      estoqueBaixo: false,
+    });
+  });
+
+  it("admin não carrega config", () => {
+    expect(cargasIniciais("admin")).toEqual({
+      produtos: true,
+      categorias: true,
+      pedidos: true,
+      vendas: true,
+      config: false,
+      estoqueBaixo: false,
+    });
+  });
+
+  it("supervisor não carrega catálogo nem config; usa estoque baixo do banco", () => {
+    expect(cargasIniciais("supervisor")).toEqual({
+      produtos: false,
+      categorias: false,
+      pedidos: true,
+      vendas: true,
+      config: false,
+      estoqueBaixo: true,
+    });
+  });
+
+  it("fora da equipe não carrega nada", () => {
+    expect(cargasIniciais("cliente")).toEqual({
+      produtos: false,
+      categorias: false,
+      pedidos: false,
+      vendas: false,
+      config: false,
+      estoqueBaixo: false,
+    });
+  });
+});
+
+describe("opcoesStatusPedido", () => {
+  const valores = (o: { status: string }[]) => o.map((x) => x.status);
+
+  it("entrega: nunca oferece pago nem pendente como escolha", () => {
+    const op = opcoesStatusPedido("entrega", "preparando");
+    expect(valores(op)).toEqual(["preparando", "enviado", "entregue", "cancelado"]);
+    expect(op.every((o) => !o.disabled)).toBe(true);
+  });
+
+  it("entrega_fora usa as opções de entrega", () => {
+    expect(valores(opcoesStatusPedido("entrega_fora", "enviado"))).toEqual([
+      "preparando",
+      "enviado",
+      "entregue",
+      "cancelado",
+    ]);
+  });
+
+  it("retirada: opções de retirada", () => {
+    expect(valores(opcoesStatusPedido("retirada", "preparando"))).toEqual([
+      "preparando",
+      "pronto_retirada",
+      "retirado",
+      "cancelado",
+    ]);
+  });
+
+  it("status atual pago ou pendente aparece só como opção desabilitada no topo", () => {
+    const pago = opcoesStatusPedido("entrega", "pago");
+    expect(pago[0]).toEqual({ status: "pago", disabled: true });
+    expect(pago.slice(1).every((o) => !o.disabled)).toBe(true);
+
+    const pend = opcoesStatusPedido("retirada", "pendente");
+    expect(pend[0]).toEqual({ status: "pendente", disabled: true });
+    expect(valores(pend.slice(1))).toEqual(["preparando", "pronto_retirada", "retirado", "cancelado"]);
+  });
+
+  it("status atual fora da lista do tipo de entrega aparece desabilitado", () => {
+    const op = opcoesStatusPedido("retirada", "enviado");
+    expect(op[0]).toEqual({ status: "enviado", disabled: true });
+  });
+});

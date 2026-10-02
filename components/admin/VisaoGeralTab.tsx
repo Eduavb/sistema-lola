@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Product, Order, Sale } from "@/lib/types";
+import type { Product, Order, Sale, EstoqueBaixoItem } from "@/lib/types";
 import { totalEstoque } from "@/lib/types";
 import SwingTag from "@/components/SwingTag";
 import { corStatus } from "@/lib/admin-status";
@@ -19,6 +19,8 @@ export default function VisaoGeralTab({
   products,
   orders,
   sales,
+  semReceita = false,
+  estoqueBaixoServidor,
   revendedoresPendentes,
   onAprovar,
   onRecusar,
@@ -29,11 +31,13 @@ export default function VisaoGeralTab({
   products: Product[];
   orders: Order[];
   sales: Sale[];
+  semReceita?: boolean;
+  estoqueBaixoServidor?: EstoqueBaixoItem[];
   revendedoresPendentes: { id: string; nome: string; cidade: string }[];
-  onAprovar: (id: string) => void;
-  onRecusar: (id: string) => void;
+  onAprovar?: (id: string) => void;
+  onRecusar?: (id: string) => void;
   onGoPedidos: () => void;
-  onGoProdutos: () => void;
+  onGoProdutos?: () => void;
   onGoRevendedores: () => void;
 }) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -72,11 +76,14 @@ export default function VisaoGeralTab({
   const chartPath = toPath(720, 190);
   const chartAreaPath = `${chartPath} L 720 200 L 0 200 Z`;
 
-  const pedidosAguardando = orders.filter((o) => o.status === "preparando").slice(0, 4);
-  const estoqueBaixo = products
-    .filter((p) => totalEstoque(p) <= 5)
-    .map((p) => ({ id: p.id, nome: p.nome, categoria: p.categoria?.nome ?? "", estoque: totalEstoque(p) }))
-    .slice(0, 4);
+  const aguardando = orders.filter((o) => o.status === "preparando");
+  const pedidosAguardando = aguardando.slice(0, 4);
+  const estoqueBaixoTodos = estoqueBaixoServidor
+    ? estoqueBaixoServidor.map((e) => ({ ...e, categoria: "" }))
+    : products
+        .filter((p) => totalEstoque(p) <= 5)
+        .map((p) => ({ id: p.id, nome: p.nome, categoria: p.categoria?.nome ?? "", estoque: totalEstoque(p) }));
+  const estoqueBaixo = estoqueBaixoTodos.slice(0, 4);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -102,12 +109,22 @@ export default function VisaoGeralTab({
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16 }}>
-        <KpiCard label="VENDAS TOTAIS" value={brl(totalGeral)} trend="↑ 8,2% no período" />
-        <KpiCard label="VENDAS DO MÊS" value={brl(totalMes)} trend="↑ 12% vs. mês anterior" />
+        {semReceita ? (
+          <>
+            <KpiCard label="PEDIDOS AGUARDANDO" value={String(aguardando.length)} trend="em preparação" trendColor="var(--adm-text-secondary)" />
+            <KpiCard label="ESTOQUE BAIXO" value={String(estoqueBaixoTodos.length)} trend="produtos com até 5 un." trendColor="var(--adm-text-secondary)" />
+          </>
+        ) : (
+          <>
+            <KpiCard label="VENDAS TOTAIS" value={brl(totalGeral)} trend="↑ 8,2% no período" />
+            <KpiCard label="VENDAS DO MÊS" value={brl(totalMes)} trend="↑ 12% vs. mês anterior" />
+          </>
+        )}
         <KpiCard label="Nº DE VENDAS" value={String(salesFiltradas.length)} trend={`Recorte: ${FILTROS.find((f) => f.key === filtro)!.label}`} trendColor="var(--adm-text-secondary)" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(360px,1fr))", gap: 16 }}>
+        {!semReceita && (
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, minWidth: 0 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Vendas no tempo</div>
@@ -127,6 +144,7 @@ export default function VisaoGeralTab({
             {meses.map((m, i) => <span key={i}>{m.label}</span>)}
           </div>
         </div>
+        )}
 
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Revendedores pendentes</div>
@@ -139,8 +157,12 @@ export default function VisaoGeralTab({
                   <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.nome}</div>
                   <div style={{ fontSize: 11, color: "var(--adm-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.cidade}</div>
                 </div>
-                <button onClick={() => onAprovar(r.id)} style={{ flex: "none", width: 28, height: 28, borderRadius: 8, border: "1px solid var(--mint)", background: "var(--adm-success-bg)", cursor: "pointer" }}>✓</button>
-                <button onClick={() => onRecusar(r.id)} style={{ flex: "none", width: 28, height: 28, borderRadius: 8, border: "1px solid var(--pink)", background: "var(--adm-pink-bg)", cursor: "pointer" }}>✕</button>
+                {onAprovar && (
+                  <button onClick={() => onAprovar(r.id)} aria-label="Aprovar" style={{ flex: "none", width: 28, height: 28, borderRadius: 8, border: "1px solid var(--mint)", background: "var(--adm-success-bg)", cursor: "pointer" }}>✓</button>
+                )}
+                {onRecusar && (
+                  <button onClick={() => onRecusar(r.id)} aria-label="Recusar" style={{ flex: "none", width: 28, height: 28, borderRadius: 8, border: "1px solid var(--pink)", background: "var(--adm-pink-bg)", cursor: "pointer" }}>✕</button>
+                )}
               </div>
             ))
           )}
@@ -178,7 +200,9 @@ export default function VisaoGeralTab({
         <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Estoque baixo</div>
-            <button onClick={onGoProdutos} style={{ background: "none", border: "none", color: "var(--peach-deep)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Ver todos →</button>
+            {onGoProdutos && (
+              <button onClick={onGoProdutos} style={{ background: "none", border: "none", color: "var(--peach-deep)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Ver todos →</button>
+            )}
           </div>
           {estoqueBaixo.length === 0 ? (
             <p style={{ fontSize: 12.5, color: "var(--adm-text-secondary)" }}>Nenhum produto com estoque baixo.</p>

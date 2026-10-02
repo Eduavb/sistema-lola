@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { saveConfig, changePassword } from "@/app/admin/actions";
+import { saveConfig } from "@/app/admin/actions";
 
 type Config = {
   taxa_entrega_local: number;
@@ -57,12 +57,6 @@ export default function ConfigTab({
   const [savingConfig, setSavingConfig] = useState(false);
   const [configOk, setConfigOk] = useState(false);
 
-  const [atual, setAtual] = useState("");
-  const [nova, setNova] = useState("");
-  const [confirma, setConfirma] = useState("");
-  const [trocando, setTrocando] = useState(false);
-  const [senhaOk, setSenhaOk] = useState(false);
-
   async function handleSaveConfig() {
     const taxaNum = parseFloat(taxa.replace(",", "."));
     if (isNaN(taxaNum) || taxaNum < 0) {
@@ -85,29 +79,6 @@ export default function ConfigTab({
     setWhatsapp(digits);
     setConfigOk(true);
     onSaved();
-  }
-
-  async function handleChangePassword() {
-    if (nova.length < 12) {
-      alert("A nova senha precisa ter ao menos 12 caracteres.");
-      return;
-    }
-    if (nova !== confirma) {
-      alert("A confirmação não confere com a nova senha.");
-      return;
-    }
-    setSenhaOk(false);
-    setTrocando(true);
-    const { error } = await changePassword(atual, nova);
-    setTrocando(false);
-    if (error) {
-      alert(error);
-      return;
-    }
-    setAtual("");
-    setNova("");
-    setConfirma("");
-    setSenhaOk(true);
   }
 
   return (
@@ -218,52 +189,6 @@ export default function ConfigTab({
         {configOk && <div style={okStyle}>Configurações salvas.</div>}
       </div>
 
-      <div style={cardStyle}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>
-          Trocar senha
-        </h3>
-
-        <label style={labelStyle}>Senha atual</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={atual}
-          onChange={(e) => setAtual(e.target.value)}
-          autoComplete="current-password"
-        />
-        <div style={{ marginBottom: 8 }} />
-
-        <label style={labelStyle}>Nova senha</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={nova}
-          onChange={(e) => setNova(e.target.value)}
-          autoComplete="new-password"
-        />
-        <div style={hintStyle}>ao menos 12 caracteres</div>
-
-        <label style={labelStyle}>Confirmar nova senha</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={confirma}
-          onChange={(e) => setConfirma(e.target.value)}
-          autoComplete="new-password"
-        />
-        <div style={{ marginBottom: 8 }} />
-
-        <button
-          className="btn"
-          onClick={handleChangePassword}
-          disabled={trocando}
-        >
-          {trocando ? "Trocando…" : "Trocar"}
-        </button>
-        {senhaOk && (
-          <div style={okStyle}>Senha alterada. Você continua logado.</div>
-        )}
-      </div>
       </div>
     </div>
   );

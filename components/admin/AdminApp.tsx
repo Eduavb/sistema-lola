@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Product, Categoria, Order, Sale } from "@/lib/types";
+import type { Product, Categoria, Order, Sale, EstoqueBaixoItem, Revendedor } from "@/lib/types";
+import type { Papel } from "@/lib/roles";
+import { podeAprovarRevendedor } from "@/lib/roles";
+import { podeExecutar, screenPermitida, screensVisiveis } from "@/lib/admin-acesso";
+import { sairAction } from "@/app/entrar/actions";
 import {
-  logoutAdmin,
   fetchProducts,
   fetchCategorias,
   fetchOrders,
@@ -18,7 +21,7 @@ import {
   setRevendedorStatus,
   upsertRevendedor,
   setDestaque,
-  type Revendedor,
+  fetchEstoqueBaixo,
 } from "@/app/admin/actions";
 import ProductEditor from "./ProductEditor";
 import CategoriasTab from "./CategoriasTab";
@@ -43,24 +46,35 @@ const SCREEN_TITLES: Record<AdminScreen, [string, string]> = {
   pedidos: ["Pedidos", "Todos os pedidos de varejo e atacado"],
   produtos: ["Produtos", "Gerencie visibilidade, destaque e desconto"],
   financeiro: ["Financeiro", "Receita, repasses e lançamentos"],
-  revendedores: ["Revendedores", "Aprove ou recuse solicitações de atacado"],
+  revendedores: ["Revendedores", "Cadastros e solicitações de atacado"],
 };
 
 export default function AdminApp({
+  perfil,
   initialProducts,
   initialCategorias,
   initialOrders,
   initialSales,
   initialConfig,
+  initialEstoqueBaixo,
 }: {
+  perfil: { nome: string; papel: Papel };
   initialProducts: Product[];
   initialCategorias: Categoria[];
   initialOrders: Order[];
   initialSales: Sale[];
   initialConfig: Config;
+  initialEstoqueBaixo: EstoqueBaixoItem[];
 }) {
   const router = useRouter();
-  const [screen, setScreen] = useState<AdminScreen>("visao-geral");
+  const papel = perfil.papel;
+  const screens = screensVisiveis(papel);
+  const podeAprovar = podeAprovarRevendedor(papel);
+  const ehSuperadmin = podeExecutar(papel, "config");
+  const supervisor = papel === "supervisor";
+  const [screenEscolhida, setScreen] = useState<AdminScreen>("visao-geral");
+  const screen = screenPermitida(papel, screenEscolhida) ?? "visao-geral";
+  const [estoqueBaixo, setEstoqueBaixo] = useState(initialEstoqueBaixo);
   const [produtosSubTab, setProdutosSubTab] = useState<"produtos" | "categorias">("produtos");
   const [configOpen, setConfigOpen] = useState(false);
   const [revendedores, setRevendedores] = useState<Revendedor[]>([]);
@@ -107,13 +121,23 @@ export default function AdminApp({
     setRevendedores(await fetchRevendedores(status));
   }
 
+  async function refreshEstoqueBaixo() {
+    setEstoqueBaixo(await fetchEstoqueBaixo());
+  }
+  async function handleRevendedorStatus(id: string, status: "aprovado" | "recusado") {
+    const { error } = await setRevendedorStatus(id, status);
+    if (error) alert(`Não deu pra atualizar o revendedor: ${error}`);
+    await refreshRevendedores();
+  }
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial única (badge de pendentes)
     refreshRevendedores();
   }, []);
 
   async function handleLogout() {
-    await logoutAdmin();
+    await sairAction();
+    router.replace("/entrar");
     router.refresh();
   }
 
@@ -194,8 +218,10 @@ export default function AdminApp({
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
       <AdminSidebar
         screen={screen}
+        screens={screens}
+        perfil={perfil}
         onNavigate={setScreen}
-        onOpenConfig={() => setConfigOpen(true)}
+        onOpenConfig={ehSuperadmin ? () => setConfigOpen(true) : undefined}
         onLogout={handleLogout}
         pendingRevendedores={revendedores.filter((r) => r.status === "pendente").length}
       />
@@ -226,19 +252,16 @@ export default function AdminApp({
               products={products}
               orders={orders}
               sales={sales}
+              semReceita={supervisor}
+              estoqueBaixoServidor={supervisor ? estoqueBaixo : undefined}
               revendedoresPendentes={revendedores
                 .filter((r) => r.status === "pendente")
-                .slice(0, 3)}
-              onAprovar={async (id) => {
-                await setRevendedorStatus(id, "aprovado");
-                await refreshRevendedores();
-              }}
-              onRecusar={async (id) => {
-                await setRevendedorStatus(id, "recusado");
-                await refreshRevendedores();
-              }}
+                .slice(0, 3)
+                .map((r) => ({ id: r.id, nome: r.razao_social, cidade: r.cidade }))}
+              onAprovar={podeAprovar ? (id) => handleRevendedorStatus(id, "aprovado") : undefined}
+              onRecusar={podeAprovar ? (id) => handleRevendedorStatus(id, "recusado") : undefined}
               onGoPedidos={() => setScreen("pedidos")}
-              onGoProdutos={() => setScreen("produtos")}
+              onGoProdutos={screens.includes("produtos") ? () => setScreen("produtos") : undefined}
               onGoRevendedores={() => setScreen("revendedores")}
             />
           )}
@@ -247,7 +270,11 @@ export default function AdminApp({
               orders={orders}
               filtro={orderFiltro}
               onFiltro={handleOrderFiltro}
-              onChange={refreshOrders}
+              onChange={async () => {
+                await refreshOrders();
+                if (supervisor) await refreshEstoqueBaixo();
+              }}
+              podeLiquidar={podeExecutar(papel, "liquidar")}
             />
           )}
           {screen === "produtos" &&
@@ -344,23 +371,27 @@ export default function AdminApp({
           {screen === "revendedores" && (
             <RevendedoresTab
               revendedores={revendedores}
-              onAprovar={async (id) => {
-                await setRevendedorStatus(id, "aprovado");
+              onAprovar={podeAprovar ? (id) => handleRevendedorStatus(id, "aprovado") : undefined}
+              onRecusar={podeAprovar ? (id) => handleRevendedorStatus(id, "recusado") : undefined}
+              onCadastrar={async (dados) => {
+                const { error } = await upsertRevendedor({
+                  id: null,
+                  razao_social: dados.razao_social,
+                  cnpj: "",
+                  responsavel: "",
+                  email: dados.email,
+                  whatsapp: "",
+                  cidade: dados.cidade,
+                  uf: "",
+                });
                 await refreshRevendedores();
-              }}
-              onRecusar={async (id) => {
-                await setRevendedorStatus(id, "recusado");
-                await refreshRevendedores();
-              }}
-              onCadastrar={async (nome, cidade) => {
-                await upsertRevendedor({ id: null, nome, cidade });
-                await refreshRevendedores();
+                return error ? { error } : {};
               }}
             />
           )}
         </section>
       </main>
-      {configOpen && (
+      {configOpen && ehSuperadmin && (
         <ConfigTab
           config={config}
           onSaved={refreshConfig}

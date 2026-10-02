@@ -40,6 +40,7 @@ type FormState = {
   ordem: string;
   ativo: boolean;
   desconto: string;
+  imagem?: string | null;
 };
 
 const EMPTY_FORM: FormState = {
@@ -50,6 +51,7 @@ const EMPTY_FORM: FormState = {
   ordem: "0",
   ativo: true,
   desconto: "",
+  imagem: null,
 };
 
 function fromCategoria(c: Categoria): FormState {
@@ -64,6 +66,7 @@ function fromCategoria(c: Categoria): FormState {
       c.desconto_atacado_percentual != null
         ? String(c.desconto_atacado_percentual)
         : "",
+    imagem: c.imagem,
   };
 }
 
@@ -121,6 +124,7 @@ export default function CategoriasTab({
       ordem: ordemNum,
       ativo: form.ativo,
       desconto_atacado_percentual: desconto,
+      imagem: form.imagem,
     });
     setSaving(false);
     if (error) {

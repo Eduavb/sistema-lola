@@ -1,0 +1,112 @@
+import type { EntregaTipo, OrderStatus } from "@/lib/types";
+import { podeAcessar, type Papel, type Tela } from "@/lib/roles";
+
+export type AdminScreen = "visao-geral" | "pedidos" | "produtos" | "financeiro" | "revendedores";
+
+export const ADMIN_SCREENS: AdminScreen[] = [
+  "visao-geral",
+  "pedidos",
+  "produtos",
+  "financeiro",
+  "revendedores",
+];
+
+export const TELA_DA_SCREEN: Record<AdminScreen, Tela> = {
+  "visao-geral": "visao-geral",
+  pedidos: "pedidos",
+  produtos: "produtos",
+  financeiro: "financeiro",
+  revendedores: "revendedores",
+};
+
+export function screensVisiveis(papel: Papel): AdminScreen[] {
+  return ADMIN_SCREENS.filter((s) => podeAcessar(papel, TELA_DA_SCREEN[s]));
+}
+
+export function screenPermitida(papel: Papel, atual: AdminScreen): AdminScreen | null {
+  const visiveis = screensVisiveis(papel);
+  if (visiveis.includes(atual)) return atual;
+  return visiveis[0] ?? null;
+}
+
+/**
+ * Matriz da spec §4.4 por operação de servidor. A decisão final é do banco
+ * (assert_papel em cada RPC); isto evita chamadas inúteis e dá mensagem clara.
+ */
+export type AcaoAdmin =
+  | "catalogo"
+  | "vendas-escrita"
+  | "liquidar"
+  | "pedidos"
+  | "vendas-leitura"
+  | "estoque-baixo"
+  | "config"
+  | "revendedores"
+  | "revendedores-status";
+
+const ADMINS: Papel[] = ["superadmin", "admin"];
+const EQUIPE_TODA: Papel[] = ["superadmin", "admin", "supervisor"];
+
+const PAPEIS_DA_ACAO: Record<AcaoAdmin, Papel[]> = {
+  catalogo: ADMINS,
+  "vendas-escrita": ADMINS,
+  liquidar: ADMINS,
+  pedidos: EQUIPE_TODA,
+  "vendas-leitura": EQUIPE_TODA,
+  "estoque-baixo": EQUIPE_TODA,
+  config: ["superadmin"],
+  revendedores: EQUIPE_TODA,
+  "revendedores-status": ADMINS,
+};
+
+export function podeExecutar(papel: Papel, acao: AcaoAdmin): boolean {
+  return PAPEIS_DA_ACAO[acao].includes(papel);
+}
+
+const ROTULO_PAPEL: Record<Papel, string> = {
+  superadmin: "Superadmin",
+  admin: "Admin",
+  supervisor: "Supervisor",
+  revendedor: "Revendedor",
+  cliente: "Cliente",
+};
+
+export function rotuloPapel(papel: Papel): string {
+  return ROTULO_PAPEL[papel];
+}
+
+export type CargasAdmin = {
+  produtos: boolean;
+  categorias: boolean;
+  pedidos: boolean;
+  vendas: boolean;
+  config: boolean;
+  estoqueBaixo: boolean;
+};
+
+export function cargasIniciais(papel: Papel): CargasAdmin {
+  const catalogo = podeExecutar(papel, "catalogo");
+  return {
+    produtos: catalogo,
+    categorias: catalogo,
+    pedidos: podeExecutar(papel, "pedidos"),
+    vendas: podeExecutar(papel, "vendas-leitura"),
+    config: podeExecutar(papel, "config"),
+    estoqueBaixo: !catalogo && podeExecutar(papel, "estoque-baixo"),
+  };
+}
+
+const OPCOES_ENTREGA: OrderStatus[] = ["preparando", "enviado", "entregue", "cancelado"];
+const OPCOES_RETIRADA: OrderStatus[] = ["preparando", "pronto_retirada", "retirado", "cancelado"];
+
+export type OpcaoStatus = { status: OrderStatus; disabled: boolean };
+
+/**
+ * 'pago' só por liquidação (settleOrder) e nada volta a 'pendente': o banco
+ * recusa as duas transições em admin_update_order_status.
+ */
+export function opcoesStatusPedido(entrega: EntregaTipo, atual: OrderStatus): OpcaoStatus[] {
+  const base = entrega === "retirada" ? OPCOES_RETIRADA : OPCOES_ENTREGA;
+  const opcoes = base.map((status) => ({ status, disabled: false }));
+  return base.includes(atual) ? opcoes : [{ status: atual, disabled: true }, ...opcoes];
+}

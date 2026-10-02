@@ -1,101 +1,77 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { supabase } from "@/lib/supabase";
-import type { Product, Categoria, Order, Sale, OrderStatus } from "@/lib/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSessao, perfilPorToken } from "@/lib/auth";
+import { supabaseComToken } from "@/lib/supabase";
+import { podeExecutar, type AcaoAdmin } from "@/lib/admin-acesso";
+import type {
+  Product,
+  Categoria,
+  Order,
+  Sale,
+  OrderStatus,
+  Revendedor,
+  RevendedorStatus,
+  EstoqueBaixoItem,
+} from "@/lib/types";
+import {
+  lerConfig,
+  listarCategorias,
+  listarEstoqueBaixo,
+  listarPedidos,
+  listarProdutos,
+  listarRevendedores,
+  listarVendas,
+  type ConfigAdmin,
+} from "./consultas";
 
-const COOKIE_NAME = "lola_admin_secret";
+export type { Revendedor } from "@/lib/types";
 
-const COOKIE_OPTS = {
-  httpOnly: true,
-  secure: true,
-  sameSite: "lax",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 30,
-} as const;
+const SEM_PERMISSAO = "Sem permissão.";
+const SEM_SESSAO = "Sessão expirada. Entre de novo.";
 
-async function getSecret(): Promise<string | null> {
-  return (await cookies()).get(COOKIE_NAME)?.value ?? null;
-}
+type Guarda = { sb: SupabaseClient } | { error: string };
 
-export async function isLoggedIn(): Promise<boolean> {
-  return (await getSecret()) !== null;
-}
-
-export async function loginAdmin(
-  _prevState: { error?: string } | undefined,
-  formData: FormData
-): Promise<{ error?: string }> {
-  const senha = String(formData.get("senha") || "");
-  const { error } = await supabase().rpc("admin_list_categorias", {
-    p_secret: senha,
-  });
-  if (error) {
-    return { error: "Senha incorreta." };
+async function autorizar(acao: AcaoAdmin): Promise<Guarda> {
+  try {
+    const sessao = await getSessao({ renovar: true });
+    if (!sessao) return { error: SEM_SESSAO };
+    const perfil = await perfilPorToken(sessao.accessToken);
+    if (!perfil || !perfil.ativo || !podeExecutar(perfil.papel, acao)) return { error: SEM_PERMISSAO };
+    return { sb: supabaseComToken(sessao.accessToken) };
+  } catch {
+    return { error: SEM_SESSAO };
   }
-  (await cookies()).set(COOKIE_NAME, senha, COOKIE_OPTS);
-  return {};
 }
 
-export async function logoutAdmin(): Promise<void> {
-  (await cookies()).delete(COOKIE_NAME);
-}
-
-export async function changePassword(
-  oldSenha: string,
-  newSenha: string
-): Promise<{ error?: string }> {
-  const { error } = await supabase().rpc("admin_set_secret", {
-    p_old_secret: oldSenha,
-    p_new_secret: newSenha,
-  });
-  if (error) {
-    return { error: "Senha atual incorreta ou nova senha inválida." };
-  }
-  (await cookies()).set(COOKIE_NAME, newSenha, COOKIE_OPTS);
-  return {};
+async function cliente(acao: AcaoAdmin): Promise<SupabaseClient | null> {
+  const g = await autorizar(acao);
+  return "sb" in g ? g.sb : null;
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-  const secret = await getSecret();
-  if (!secret) return [];
-  const { data, error } = await supabase().rpc("admin_list_products", {
-    p_secret: secret,
-  });
-  if (error) return [];
-  return (data ?? []) as Product[];
+  const sb = await cliente("catalogo");
+  return sb ? listarProdutos(sb) : [];
 }
 
 export async function fetchCategorias(): Promise<Categoria[]> {
-  const secret = await getSecret();
-  if (!secret) return [];
-  const { data, error } = await supabase().rpc("admin_list_categorias", {
-    p_secret: secret,
-  });
-  if (error) return [];
-  return (data ?? []) as Categoria[];
+  const sb = await cliente("catalogo");
+  return sb ? listarCategorias(sb) : [];
 }
 
 export async function fetchOrders(p_filtro: string = "todos"): Promise<Order[]> {
-  const secret = await getSecret();
-  if (!secret) return [];
-  const { data, error } = await supabase().rpc("admin_list_orders", {
-    p_secret: secret,
-    p_filtro,
-  });
-  if (error) return [];
-  return (data ?? []) as Order[];
+  const sb = await cliente("pedidos");
+  return sb ? listarPedidos(sb, p_filtro) : [];
 }
 
 export async function fetchSales(p_filtro: string = "todos"): Promise<Sale[]> {
-  const secret = await getSecret();
-  if (!secret) return [];
-  const { data, error } = await supabase().rpc("admin_list_sales", {
-    p_secret: secret,
-    p_filtro,
-  });
-  if (error) return [];
-  return (data ?? []) as Sale[];
+  const sb = await cliente("vendas-leitura");
+  return sb ? listarVendas(sb, p_filtro) : [];
+}
+
+export async function fetchEstoqueBaixo(): Promise<EstoqueBaixoItem[]> {
+  const sb = await cliente("estoque-baixo");
+  return sb ? listarEstoqueBaixo(sb) : [];
 }
 
 // --- Produtos / cores / tamanhos (mutations) -------------------------------
@@ -115,10 +91,9 @@ export async function saveProduct(payload: {
   desconto_percentual: number | null;
   preco_atacado: number | null;
 }): Promise<{ error?: string; id?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_upsert_product", {
-    p_secret: secret,
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_upsert_product", {
     p_id: payload.id,
     p_nome: payload.nome,
     p_categoria_id: payload.categoria_id,
@@ -138,24 +113,17 @@ export async function saveProduct(payload: {
 }
 
 export async function deleteProduct(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_delete_product", {
-    p_secret: secret,
-    p_id: id,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_product", { p_id: id });
   if (error) return { error: error.message };
   return {};
 }
 
 export async function setAtivo(id: string, ativo: boolean): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_ativo", {
-    p_secret: secret,
-    p_id: id,
-    p_ativo: ativo,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_ativo", { p_id: id, p_ativo: ativo });
   if (error) return { error: error.message };
   return {};
 }
@@ -165,10 +133,9 @@ export async function setDesconto(
   id: string,
   pct: number | null
 ): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_desconto", {
-    p_secret: secret,
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_desconto", {
     p_id: id,
     p_desconto_percentual: pct,
   });
@@ -178,13 +145,20 @@ export async function setDesconto(
 
 // Ativar um produto na Live Surpresa desativa os demais no servidor.
 export async function setSurpresa(id: string, ativo: boolean): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_surpresa", {
-    p_secret: secret,
-    p_id: id,
-    p_ativo: ativo,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_surpresa", { p_id: id, p_ativo: ativo });
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function setDestaque(
+  id: string,
+  destaque: boolean
+): Promise<{ error?: string }> {
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_destaque", { p_id: id, p_destaque: destaque });
   if (error) return { error: error.message };
   return {};
 }
@@ -197,10 +171,9 @@ export async function saveColor(payload: {
   imagens: string[];
   ordem: number;
 }): Promise<{ error?: string; id?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_upsert_color", {
-    p_secret: secret,
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_upsert_color", {
     p_id: payload.id,
     p_product_id: payload.product_id,
     p_nome: payload.nome,
@@ -213,12 +186,9 @@ export async function saveColor(payload: {
 }
 
 export async function deleteColor(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_delete_color", {
-    p_secret: secret,
-    p_id: id,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_color", { p_id: id });
   if (error) return { error: error.message };
   return {};
 }
@@ -229,10 +199,9 @@ export async function saveSize(payload: {
   tamanho: string;
   estoque: number;
 }): Promise<{ error?: string; id?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_upsert_size", {
-    p_secret: secret,
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_upsert_size", {
     p_id: payload.id,
     p_color_id: payload.color_id,
     p_tamanho: payload.tamanho,
@@ -243,18 +212,17 @@ export async function saveSize(payload: {
 }
 
 export async function deleteSize(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_delete_size", {
-    p_secret: secret,
-    p_id: id,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_size", { p_id: id });
   if (error) return { error: error.message };
   return {};
 }
 
 // --- Categorias (mutations) ----------------------------------------------
 
+// admin_upsert_categoria grava a imagem como recebida (null apaga). Sem
+// `imagem` no payload, reenvia a imagem atual em vez de apagá-la.
 export async function saveCategoria(payload: {
   id: string | null;
   grupo: "calcados" | "acessorios";
@@ -263,11 +231,23 @@ export async function saveCategoria(payload: {
   ordem: number;
   ativo: boolean;
   desconto_atacado_percentual: number | null;
+  imagem?: string | null;
 }): Promise<{ error?: string; id?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_upsert_categoria", {
-    p_secret: secret,
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+
+  let imagem = payload.imagem ?? null;
+  if (payload.imagem === undefined && payload.id) {
+    const { data, error } = await g.sb
+      .from("categorias")
+      .select("imagem")
+      .eq("id", payload.id)
+      .maybeSingle();
+    if (error) return { error: "Não foi possível ler a imagem atual da categoria." };
+    imagem = (data as { imagem: string | null } | null)?.imagem ?? null;
+  }
+
+  const { data, error } = await g.sb.rpc("admin_upsert_categoria", {
     p_id: payload.id,
     p_grupo: payload.grupo,
     p_nome: payload.nome,
@@ -275,18 +255,16 @@ export async function saveCategoria(payload: {
     p_ordem: payload.ordem,
     p_ativo: payload.ativo,
     p_desconto_atacado_percentual: payload.desconto_atacado_percentual,
+    p_imagem: imagem,
   });
   if (error) return { error: error.message };
   return { id: data as string };
 }
 
 export async function deleteCategoria(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_delete_categoria", {
-    p_secret: secret,
-    p_id: id,
-  });
+  const g = await autorizar("catalogo");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_categoria", { p_id: id });
   if (error) {
     return {
       error: error.message.includes("produtos")
@@ -303,13 +281,9 @@ export async function updateOrderStatus(
   id: string,
   status: OrderStatus
 ): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_update_order_status", {
-    p_secret: secret,
-    p_id: id,
-    p_status: status,
-  });
+  const g = await autorizar("pedidos");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_update_order_status", { p_id: id, p_status: status });
   if (error) return { error: error.message };
   return {};
 }
@@ -317,12 +291,9 @@ export async function updateOrderStatus(
 // Liquidação manual de um pedido `pendente` quando o webhook não chegou:
 // baixa estoque + grava `sales` via a RPC `admin_settle_order`.
 export async function settleOrder(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_settle_order", {
-    p_secret: secret,
-    p_order_id: id,
-  });
+  const g = await autorizar("liquidar");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_settle_order", { p_order_id: id });
   if (error) return { error: error.message };
   const res = data as { ok?: boolean } | null;
   if (res && res.ok === false) return { error: "Não foi possível registrar o pagamento." };
@@ -342,10 +313,9 @@ export async function insertSale(payload: {
   size_id: string | null;
   is_atacado: boolean;
 }): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_insert_sale", {
-    p_secret: secret,
+  const g = await autorizar("vendas-escrita");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_insert_sale", {
     p_produto_id: payload.produto_id,
     p_produto_nome: payload.produto_nome,
     p_quantidade: payload.quantidade,
@@ -363,43 +333,24 @@ export async function insertSale(payload: {
 }
 
 export async function deleteSale(id: string): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_delete_sale", {
-    p_secret: secret,
-    p_id: id,
-  });
+  const g = await autorizar("vendas-escrita");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_sale", { p_id: id });
   if (error) return { error: error.message };
   return {};
 }
 
-export async function fetchConfig(): Promise<{
-  taxa_entrega_local: number;
-  whatsapp: string;
-  cidade_taxa: string;
-} | null> {
-  const secret = await getSecret();
-  if (!secret) return null;
-  const { data, error } = await supabase().rpc("admin_get_config", {
-    p_secret: secret,
-  });
-  if (error) return null;
-  return (data as {
-    taxa_entrega_local: number;
-    whatsapp: string;
-    cidade_taxa: string;
-  }) ?? null;
+// --- Config ------------------------------------------------------------------
+
+export async function fetchConfig(): Promise<ConfigAdmin | null> {
+  const sb = await cliente("config");
+  return sb ? lerConfig(sb) : null;
 }
 
-export async function saveConfig(payload: {
-  taxa_entrega_local: number;
-  whatsapp: string;
-  cidade_taxa: string;
-}): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_config", {
-    p_secret: secret,
+export async function saveConfig(payload: ConfigAdmin): Promise<{ error?: string }> {
+  const g = await autorizar("config");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_config", {
     p_taxa: payload.taxa_entrega_local,
     p_whatsapp: payload.whatsapp,
     p_cidade: payload.cidade_taxa,
@@ -408,72 +359,46 @@ export async function saveConfig(payload: {
   return {};
 }
 
-// --- Revendedores (mutations) ---------------------------------------------
+// --- Revendedores ------------------------------------------------------------
 
-export type Revendedor = {
-  id: string;
-  nome: string;
-  cidade: string;
-  status: "pendente" | "aprovado" | "recusado";
-  created_at: string;
-};
-
-export async function fetchRevendedores(
-  p_status: string = "todos"
-): Promise<Revendedor[]> {
-  const secret = await getSecret();
-  if (!secret) return [];
-  const { data, error } = await supabase().rpc("admin_list_revendedores", {
-    p_secret: secret,
-    p_status,
-  });
-  if (error) return [];
-  return (data ?? []) as Revendedor[];
+export async function fetchRevendedores(p_status: string = "todos"): Promise<Revendedor[]> {
+  const sb = await cliente("revendedores");
+  return sb ? listarRevendedores(sb, p_status) : [];
 }
 
 export async function setRevendedorStatus(
   id: string,
-  status: "pendente" | "aprovado" | "recusado"
+  status: RevendedorStatus
 ): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_revendedor_status", {
-    p_secret: secret,
-    p_id: id,
-    p_status: status,
-  });
+  const g = await autorizar("revendedores-status");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_set_revendedor_status", { p_id: id, p_status: status });
   if (error) return { error: error.message };
   return {};
 }
 
 export async function upsertRevendedor(payload: {
   id: string | null;
-  nome: string;
+  razao_social: string;
+  cnpj: string;
+  responsavel: string;
+  email: string;
+  whatsapp: string;
   cidade: string;
+  uf: string;
 }): Promise<{ error?: string; id?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { data, error } = await supabase().rpc("admin_upsert_revendedor", {
-    p_secret: secret,
+  const g = await autorizar("revendedores");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_upsert_revendedor", {
     p_id: payload.id,
-    p_nome: payload.nome,
+    p_razao_social: payload.razao_social,
+    p_cnpj: payload.cnpj,
+    p_responsavel: payload.responsavel,
+    p_email: payload.email,
+    p_whatsapp: payload.whatsapp,
     p_cidade: payload.cidade,
+    p_uf: payload.uf,
   });
   if (error) return { error: error.message };
   return { id: data as string };
-}
-
-export async function setDestaque(
-  id: string,
-  destaque: boolean
-): Promise<{ error?: string }> {
-  const secret = await getSecret();
-  if (!secret) return { error: "Não autenticado." };
-  const { error } = await supabase().rpc("admin_set_destaque", {
-    p_secret: secret,
-    p_id: id,
-    p_destaque: destaque,
-  });
-  if (error) return { error: error.message };
-  return {};
 }

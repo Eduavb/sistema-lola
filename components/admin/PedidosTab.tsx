@@ -6,11 +6,9 @@ import { ORDER_STATUS_LABEL, entregaTipoLabel } from "@/lib/types";
 import { updateOrderStatus, settleOrder } from "@/app/admin/actions";
 import SwingTag from "@/components/SwingTag";
 import { corStatus } from "@/lib/admin-status";
+import { opcoesStatusPedido } from "@/lib/admin-acesso";
 
 type Filtro = "todos" | "varejo" | "atacado";
-
-const OPCOES_ENTREGA: OrderStatus[] = ["pago", "preparando", "enviado", "entregue", "cancelado"];
-const OPCOES_RETIRADA: OrderStatus[] = ["pago", "preparando", "pronto_retirada", "retirado", "cancelado"];
 
 const FILTROS: { key: Filtro; label: string }[] = [
   { key: "todos", label: "Todos" },
@@ -41,11 +39,13 @@ export default function PedidosTab({
   filtro,
   onFiltro,
   onChange,
+  podeLiquidar,
 }: {
   orders: Order[];
   filtro: Filtro;
   onFiltro: (f: Filtro) => void;
   onChange: () => void;
+  podeLiquidar: boolean;
 }) {
   const [salvandoId, setSalvandoId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export default function PedidosTab({
           </div>
         ) : (
           orders.map((o) => {
-            const opcoes = o.entrega_tipo !== "retirada" ? OPCOES_ENTREGA : OPCOES_RETIRADA;
+            const opcoes = opcoesStatusPedido(o.entrega_tipo, o.status);
             const aberto = expandedId === o.id;
             const cor = corStatus(STATUS_TAG_LABEL[o.status]);
             return (
@@ -158,7 +158,7 @@ export default function PedidosTab({
                     onClick={(e) => e.stopPropagation()}
                     style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                   >
-                    {o.status === "pendente" && (
+                    {podeLiquidar && o.status === "pendente" && (
                       <button
                         onClick={() => handleSettle(o.id)}
                         disabled={salvandoId === o.id}
@@ -183,9 +183,9 @@ export default function PedidosTab({
                       onChange={(e) => handleStatus(o.id, e.target.value as OrderStatus)}
                       style={{ padding: "7px 8px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 12 }}
                     >
-                      {opcoes.map((s) => (
-                        <option key={s} value={s}>
-                          {ORDER_STATUS_LABEL[s]}
+                      {opcoes.map((op) => (
+                        <option key={op.status} value={op.status} disabled={op.disabled}>
+                          {ORDER_STATUS_LABEL[op.status]}
                         </option>
                       ))}
                     </select>

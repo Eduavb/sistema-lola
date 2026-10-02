@@ -6,6 +6,7 @@ export type Categoria = {
   ordem: number;
   ativo: boolean;
   desconto_atacado_percentual: number | null;
+  imagem?: string | null;
 };
 
 export type ProductSize = {
@@ -131,6 +132,26 @@ export type Sale = {
   created_at: string;
   order_id: string | null;
 };
+
+export type RevendedorStatus = "pendente" | "aprovado" | "recusado";
+
+export type Revendedor = {
+  id: string;
+  razao_social: string;
+  cnpj: string | null;
+  responsavel: string;
+  email: string;
+  whatsapp: string;
+  cidade: string;
+  uf: string;
+  status: RevendedorStatus;
+  created_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  tem_conta: boolean;
+};
+
+export type EstoqueBaixoItem = { id: string; nome: string; estoque: number };
 
 // Preço já com o desconto interno de varejo aplicado (o que de fato é
 // cobrado do cliente no varejo). Sem desconto ativo, é igual ao preço de
