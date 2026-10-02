@@ -223,13 +223,14 @@ end $$;
 -- Liquidação manual pelo painel quando o webhook não chegou: reaproveita
 -- _settle_order (baixa estoque + grava `sales`) em vez de só trocar o enum,
 -- que perderia a venda do razão. Idempotente: só age se o pedido está pendente.
+-- Efeito financeiro (estoque + venda): só superadmin/admin, não supervisor.
 drop function if exists admin_settle_order(text, uuid, text);
 create or replace function admin_settle_order(
   p_order_id uuid, p_forma_pagamento text default 'Manual'
 ) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare v_ord orders;
 begin
-  perform assert_papel(array['superadmin','admin','supervisor']);
+  perform assert_papel(array['superadmin','admin']);
   select * into v_ord from orders where id = p_order_id for update;
   if not found then raise exception 'pedido não encontrado'; end if;
   if v_ord.status <> 'pendente' then
