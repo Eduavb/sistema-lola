@@ -32,6 +32,7 @@ insert into textos_loja (chave, valor) values
   ('revendedora.titulo',        'Seja revendedora LOLA.'),
   ('revendedora.texto',         'Preço de atacado a partir de 12 modelos diferentes. Cadastro com CNPJ, aprovação rápida.'),
   ('revendedora.botao',         'Quero ser revendedor'),
+  ('home.categorias_etiqueta',  ''),
   ('home.categorias_titulo',    'Categorias'),
   ('home.lancamentos_etiqueta', 'ACABOU DE CHEGAR'),
   ('home.lancamentos_titulo',   'Lançamentos'),
@@ -71,6 +72,16 @@ begin
     end if;
     if v_chave = 'aviso.ativo' and v_valor not in ('true','false') then
       raise exception 'aviso.ativo deve ser true ou false';
+    end if;
+    if right(v_chave, 5) = '_link' and v_valor <> '' then
+      if not ((left(v_valor, 1) = '/' and left(v_valor, 2) <> '//')
+              or left(v_valor, 1) = '#'
+              or left(v_valor, 8) = 'https://'
+              or left(v_valor, 7) = 'mailto:'
+              or left(v_valor, 4) = 'tel:')
+         or v_valor ~ '[[:space:][:cntrl:]\\]' then
+        raise exception 'link inválido em %: deve começar com /, #, https://, mailto: ou tel:, sem espaços', v_chave;
+      end if;
     end if;
     update textos_loja set valor = v_valor where chave = v_chave;
   end loop;
