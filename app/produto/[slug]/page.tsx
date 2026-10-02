@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { comDescontoEfetivo } from "@/lib/pricing";
+import { getPromocoesAtivas } from "@/lib/promocoes";
 import type { Product } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
 import Header from "@/components/Header";
@@ -45,8 +47,9 @@ export default async function ProdutoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
-  if (!product) notFound();
+  const base = await getProduct(slug);
+  if (!base) notFound();
+  const [product] = comDescontoEfetivo([base], await getPromocoesAtivas());
 
   return (
     <>

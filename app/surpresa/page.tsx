@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { comDescontoEfetivo } from "@/lib/pricing";
+import { getPromocoesAtivas } from "@/lib/promocoes";
 import type { Product } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
 import SurpresaOffer from "@/components/SurpresaOffer";
@@ -20,7 +22,10 @@ async function getSurpresa(): Promise<Product | null> {
 }
 
 export default async function SurpresaPage() {
-  const product = await getSurpresa();
+  const base = await getSurpresa();
+  const product = base
+    ? comDescontoEfetivo([base], await getPromocoesAtivas())[0]
+    : null;
 
   if (!product) {
     return (

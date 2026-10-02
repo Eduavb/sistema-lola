@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { comDescontoEfetivo } from "@/lib/pricing";
+import { getPromocoesAtivas } from "@/lib/promocoes";
 import { totalEstoque, type Product } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
 import Header from "@/components/Header";
@@ -137,7 +139,8 @@ function GrupoSection({
 }
 
 export default async function Home() {
-  const todosAtivos = await getProducts();
+  const [produtosBase, promos] = await Promise.all([getProducts(), getPromocoesAtivas()]);
+  const todosAtivos = comDescontoEfetivo(produtosBase, promos);
   // Produto sem estoque em nenhuma cor/tamanho fica fora da vitrine
   // automaticamente — continua existindo no admin, só não aparece pro cliente.
   const products = todosAtivos.filter((p) => totalEstoque(p) > 0);

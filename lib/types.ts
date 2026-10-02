@@ -34,6 +34,7 @@ export type Product = {
   colecao: string | null;
   preco: number;
   desconto_percentual: number | null;
+  desconto_efetivo?: number | null;
   preco_atacado: number | null;
   descricao: string | null;
   caracteristicas: string[];

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { precoVarejo, precisaNumeracao, type Product } from "@/lib/types";
+import { precisaNumeracao, type Product } from "@/lib/types";
+import { precoVarejoEfetivo } from "@/lib/pricing";
 import ProductGallery from "@/components/ProductGallery";
 import { useCart } from "@/lib/cart";
 
@@ -15,8 +16,12 @@ export default function ProductDetail({ product }: { product: Product }) {
   const activeColor = colors[colorIdx];
   const sizes = activeColor?.sizes ?? [];
   const precisaTamanho = precisaNumeracao(product.categoria?.grupo);
-  const temDesconto = product.desconto_percentual != null && product.desconto_percentual > 0;
-  const precoFinal = precoVarejo(product);
+  const varejo = precoVarejoEfetivo({
+    preco: product.preco,
+    desconto_efetivo: product.desconto_efetivo ?? product.desconto_percentual,
+  });
+  const temDesconto = varejo.pct != null;
+  const precoFinal = varejo.final;
   // Acessórios não têm tamanho pro cliente escolher, mas o estoque é guardado
   // num único registro "de tamanho" nos bastidores (ver admin ProductEditor).
   const acessorioEstoque = !precisaTamanho ? sizes[0] : undefined;
