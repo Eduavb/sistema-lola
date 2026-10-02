@@ -1,7 +1,7 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { apagarSessao, encerrarNoSupabase, getSessao, perfilPorToken } from "@/lib/auth";
+import { apagarSessao, encerrarNoSupabase, getSessao, perfilPorToken, type Perfil } from "@/lib/auth";
 import { supabaseComToken } from "@/lib/supabase";
 import { MSG_PERFIL_INDISPONIVEL, decidirAcesso, type AcaoAdmin } from "@/lib/admin-acesso";
 import type {
@@ -14,6 +14,11 @@ import type {
   RevendedorStatus,
   EstoqueBaixoItem,
 } from "@/lib/types";
+import { PAPEIS, podeGerirPapel, type Papel } from "@/lib/roles";
+import { validarImagemCategoria } from "@/lib/admin-categoria-imagem";
+import { payloadParaForm, traduzirErroPromocao, validarPromocao, type Promocao, type PromocaoPayload } from "@/lib/admin-promocoes";
+import { motivoSemEdicao, traduzirErroUsuarios, validarConvite, type Convite, type Usuario } from "@/lib/admin-usuarios";
+import { traduzirErroRevendedor, validarRevendedor, type RevendedorPayload } from "@/lib/admin-revendedores";
 import { mesclarTextos } from "@/lib/textos";
 import { validarValoresServidor } from "@/lib/admin-textos";
 import {
@@ -38,14 +43,17 @@ export type { Revendedor } from "@/lib/types";
 
 const SEM_SESSAO = "Sessão expirada. Entre de novo.";
 
-type Guarda = { sb: SupabaseClient } | { error: string };
+type Guarda = { sb: SupabaseClient; perfil: Perfil } | { error: string };
 
 async function autorizar(acao: AcaoAdmin): Promise<Guarda> {
   try {
     const sessao = await getSessao({ renovar: true });
     if (!sessao) return { error: SEM_SESSAO };
-    const decisao = decidirAcesso(await perfilPorToken(sessao.accessToken), acao);
-    if (decisao.ok) return { sb: supabaseComToken(sessao.accessToken) };
+    const perfil = await perfilPorToken(sessao.accessToken);
+    const decisao = decidirAcesso(perfil, acao);
+    if (decisao.ok) {
+      return perfil ? { sb: supabaseComToken(sessao.accessToken), perfil } : { error: MSG_PERFIL_INDISPONIVEL };
+    }
     if (decisao.encerrarSessao) {
       await encerrarNoSupabase(sessao.accessToken);
       await apagarSessao();
@@ -247,8 +255,10 @@ export async function saveCategoria(payload: {
 }): Promise<{ error?: string; id?: string }> {
   const g = await autorizar("catalogo");
   if ("error" in g) return { error: g.error };
+  const erroImagem = validarImagemCategoria(payload.imagem);
+  if (erroImagem) return { error: erroImagem };
 
-  let imagem = payload.imagem ?? null;
+  let imagem = payload.imagem || null;
   if (payload.imagem === undefined && payload.id) {
     const { data, error } = await g.sb
       .from("categorias")
@@ -389,30 +399,134 @@ export async function setRevendedorStatus(
   return {};
 }
 
-export async function upsertRevendedor(payload: {
-  id: string | null;
-  razao_social: string;
-  cnpj: string;
-  responsavel: string;
-  email: string;
-  whatsapp: string;
-  cidade: string;
-  uf: string;
-}): Promise<{ error?: string; id?: string }> {
+export async function saveRevendedor(
+  payload: { id: string | null } & RevendedorPayload
+): Promise<{ error?: string; id?: string }> {
   const g = await autorizar("revendedores");
   if ("error" in g) return { error: g.error };
+  const { id, ...campos } = payload;
+  const { erros, payload: dados } = validarRevendedor(campos);
+  if (!dados) return { error: Object.values(erros)[0] ?? "Dados do revendedor inválidos." };
   const { data, error } = await g.sb.rpc("admin_upsert_revendedor", {
-    p_id: payload.id,
-    p_razao_social: payload.razao_social,
-    p_cnpj: payload.cnpj,
-    p_responsavel: payload.responsavel,
-    p_email: payload.email,
-    p_whatsapp: payload.whatsapp,
-    p_cidade: payload.cidade,
-    p_uf: payload.uf,
+    p_id: id,
+    p_razao_social: dados.razao_social,
+    p_cnpj: dados.cnpj,
+    p_responsavel: dados.responsavel,
+    p_email: dados.email,
+    p_whatsapp: dados.whatsapp,
+    p_cidade: dados.cidade,
+    p_uf: dados.uf,
   });
-  if (error) return { error: error.message };
+  if (error) return { error: traduzirErroRevendedor(error.message) };
   return { id: data as string };
+}
+
+// --- Promoções -----------------------------------------------------------------
+
+export async function fetchPromocoes(): Promise<{ promocoes?: Promocao[]; error?: string }> {
+  const g = await autorizar("promocoes");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_list_promocoes");
+  if (error) return { error: "Não foi possível carregar as promoções." };
+  return { promocoes: (data ?? []) as Promocao[] };
+}
+
+export async function savePromocao(
+  payload: { id: string | null } & PromocaoPayload
+): Promise<{ error?: string; id?: string }> {
+  const g = await autorizar("promocoes");
+  if ("error" in g) return { error: g.error };
+  const { id, ...campos } = payload;
+  const { erros, payload: dados } = validarPromocao(payloadParaForm(campos));
+  if (!dados) return { error: Object.values(erros)[0] ?? "Dados da promoção inválidos." };
+  const { data, error } = await g.sb.rpc("admin_upsert_promocao", {
+    p_id: id,
+    p_nome: dados.nome,
+    p_desconto: dados.desconto,
+    p_categoria_id: dados.categoria_id,
+    p_inicio: dados.inicio,
+    p_fim: dados.fim,
+    p_cupom: dados.cupom,
+    p_ativa: dados.ativa,
+  });
+  if (error) return { error: traduzirErroPromocao(error.message) };
+  return { id: data as string };
+}
+
+export async function deletePromocao(id: string): Promise<{ error?: string }> {
+  const g = await autorizar("promocoes");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_promocao", { p_id: id });
+  if (error) return { error: traduzirErroPromocao(error.message) };
+  return {};
+}
+
+// --- Usuários e convites -------------------------------------------------------
+
+const ERRO_USUARIOS = "Não foi possível carregar os usuários.";
+
+export async function fetchUsuarios(): Promise<{ usuarios?: Usuario[]; error?: string }> {
+  const g = await autorizar("usuarios");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_list_users");
+  if (error) return { error: ERRO_USUARIOS };
+  return { usuarios: (data ?? []) as Usuario[] };
+}
+
+export async function saveUsuario(payload: {
+  id: string;
+  papel: Papel;
+  ativo: boolean;
+}): Promise<{ error?: string }> {
+  const g = await autorizar("usuarios");
+  if ("error" in g) return { error: g.error };
+  if (!PAPEIS.includes(payload.papel) || typeof payload.ativo !== "boolean") {
+    return { error: "Dados do usuário inválidos." };
+  }
+  const { data, error: erroLista } = await g.sb.rpc("admin_list_users");
+  if (erroLista) return { error: ERRO_USUARIOS };
+  const alvo = ((data ?? []) as Usuario[]).find((u) => u.id === payload.id);
+  if (!alvo) return { error: traduzirErroUsuarios("usuário não encontrado") };
+  const bloqueio = motivoSemEdicao(g.perfil.papel, alvo, g.perfil.id);
+  if (bloqueio) return { error: bloqueio };
+  if (!podeGerirPapel(g.perfil.papel, payload.papel)) {
+    return { error: "Seu papel não permite atribuir esse papel." };
+  }
+  const { error } = await g.sb.rpc("admin_set_user", {
+    p_id: payload.id,
+    p_papel: payload.papel,
+    p_ativo: payload.ativo,
+  });
+  if (error) return { error: traduzirErroUsuarios(error.message) };
+  return {};
+}
+
+export async function inviteUsuario(payload: { email: string; papel: Papel }): Promise<{ error?: string }> {
+  const g = await autorizar("usuarios");
+  if ("error" in g) return { error: g.error };
+  const { erros, email } = validarConvite(g.perfil.papel, String(payload.email ?? ""), payload.papel);
+  const primeiro = erros.email ?? erros.papel;
+  if (primeiro) return { error: primeiro };
+  const { error } = await g.sb.rpc("admin_invite_user", { p_email: email, p_papel: payload.papel });
+  if (error) return { error: traduzirErroUsuarios(error.message) };
+  return {};
+}
+
+export async function fetchConvites(): Promise<{ convites?: Convite[]; error?: string }> {
+  const g = await autorizar("usuarios");
+  if ("error" in g) return { error: g.error };
+  const { data, error } = await g.sb.rpc("admin_list_convites");
+  if (error) return { error: "Não foi possível carregar os convites." };
+  return { convites: (data ?? []) as Convite[] };
+}
+
+// admin_delete_convite só remove convites ainda não usados; quem já criou a conta não é afetado.
+export async function deleteConvite(email: string): Promise<{ error?: string }> {
+  const g = await autorizar("usuarios");
+  if ("error" in g) return { error: g.error };
+  const { error } = await g.sb.rpc("admin_delete_convite", { p_email: String(email ?? "") });
+  if (error) return { error: traduzirErroUsuarios(error.message) };
+  return {};
 }
 
 // --- Textos da loja e Banner do hero ----------------------------------------

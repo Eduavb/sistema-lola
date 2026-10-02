@@ -29,6 +29,8 @@ const ACOES: AcaoAdmin[] = [
   "revendedores-status",
   "textos",
   "banner",
+  "promocoes",
+  "usuarios",
 ];
 
 function permitidas(papel: Papel): AcaoAdmin[] {
@@ -85,7 +87,9 @@ describe("screens do admin", () => {
       "pedidos",
       "produtos",
       "financeiro",
+      "promocoes",
       "revendedores",
+      "usuarios",
       "banner",
       "textos",
     ];
@@ -107,6 +111,21 @@ describe("screens do admin", () => {
       error: MSG_SEM_PERMISSAO,
       encerrarSessao: false,
     });
+  });
+
+  it("supervisor não vê promoções nem usuários e não executa as ações", () => {
+    expect(screensVisiveis("supervisor")).not.toContain("promocoes");
+    expect(screensVisiveis("supervisor")).not.toContain("usuarios");
+    expect(podeExecutar("supervisor", "promocoes")).toBe(false);
+    expect(podeExecutar("supervisor", "usuarios")).toBe(false);
+    expect(podeExecutar("supervisor", "catalogo")).toBe(false);
+  });
+
+  it("admin e superadmin executam promoções e usuários", () => {
+    for (const p of ["superadmin", "admin"] as const) {
+      expect(podeExecutar(p, "promocoes")).toBe(true);
+      expect(podeExecutar(p, "usuarios")).toBe(true);
+    }
   });
 
   it("papéis fora da equipe não veem nada", () => {

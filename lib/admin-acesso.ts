@@ -6,7 +6,9 @@ export type AdminScreen =
   | "pedidos"
   | "produtos"
   | "financeiro"
+  | "promocoes"
   | "revendedores"
+  | "usuarios"
   | "banner"
   | "textos";
 
@@ -15,7 +17,9 @@ export const ADMIN_SCREENS: AdminScreen[] = [
   "pedidos",
   "produtos",
   "financeiro",
+  "promocoes",
   "revendedores",
+  "usuarios",
   "banner",
   "textos",
 ];
@@ -25,7 +29,9 @@ export const TELA_DA_SCREEN: Record<AdminScreen, Tela> = {
   pedidos: "pedidos",
   produtos: "produtos",
   financeiro: "financeiro",
+  promocoes: "promocoes",
   revendedores: "revendedores",
+  usuarios: "usuarios",
   banner: "banner",
   textos: "textos",
 };
@@ -55,7 +61,9 @@ export type AcaoAdmin =
   | "revendedores"
   | "revendedores-status"
   | "textos"
-  | "banner";
+  | "banner"
+  | "promocoes"
+  | "usuarios";
 
 const ADMINS: Papel[] = ["superadmin", "admin"];
 const EQUIPE_TODA: Papel[] = ["superadmin", "admin", "supervisor"];
@@ -72,6 +80,8 @@ const PAPEIS_DA_ACAO: Record<AcaoAdmin, Papel[]> = {
   "revendedores-status": ADMINS,
   textos: ADMINS,
   banner: ADMINS,
+  promocoes: ADMINS,
+  usuarios: ADMINS,
 };
 
 export function podeExecutar(papel: Papel, acao: AcaoAdmin): boolean {
