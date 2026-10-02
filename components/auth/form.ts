@@ -66,24 +66,41 @@ export function aplicarMascara(nome: string, valor: string): string {
 
 const MSG_SENHA_CURTA = `A senha precisa ter ao menos ${SENHA_MIN} caracteres.`;
 
-export function validarFormulario(modo: Modo, valores: Record<string, string | undefined>): string | null {
+export type Diagnostico = { campo: string; mensagem: string };
+
+export function diagnosticarFormulario(
+  modo: Modo,
+  valores: Record<string, string | undefined>
+): Diagnostico | null {
   const v = (nome: string) => (valores[nome] ?? "").trim();
-  if (CAMPOS[modo].some((c) => !v(c.nome))) return "Preencha todos os campos.";
-  if (!emailValido(v("email"))) return "Confira o e-mail.";
+  const vazio = CAMPOS[modo].find((c) => !v(c.nome));
+  if (vazio) return { campo: vazio.nome, mensagem: "Preencha todos os campos." };
+  if (!emailValido(v("email"))) return { campo: "email", mensagem: "Confira o e-mail." };
   if (modo === "revendedor") {
-    if (!cnpjValido(v("cnpj"))) return "Confira o CNPJ.";
+    if (!cnpjValido(v("cnpj"))) return { campo: "cnpj", mensagem: "Confira o CNPJ." };
     const tel = v("whatsapp").replace(/\D/g, "");
-    if (tel.length !== 10 && tel.length !== 11) return "WhatsApp inválido. Use DDD + número.";
+    if (tel.length !== 10 && tel.length !== 11) {
+      return { campo: "whatsapp", mensagem: "WhatsApp inválido. Use DDD + número." };
+    }
   }
   if ((modo === "cadastro" || modo === "revendedor") && (valores.senha ?? "").length < SENHA_MIN) {
-    return MSG_SENHA_CURTA;
+    return { campo: "senha", mensagem: MSG_SENHA_CURTA };
   }
   return null;
 }
 
-export function validarNovaSenha(senha: string, confirmar: string): string | null {
-  if (!senha || !confirmar) return "Preencha todos os campos.";
-  if (senha.length < SENHA_MIN) return MSG_SENHA_CURTA;
-  if (senha !== confirmar) return "As senhas não conferem.";
+export function validarFormulario(modo: Modo, valores: Record<string, string | undefined>): string | null {
+  return diagnosticarFormulario(modo, valores)?.mensagem ?? null;
+}
+
+export function diagnosticarNovaSenha(senha: string, confirmar: string): Diagnostico | null {
+  if (!senha) return { campo: "senha", mensagem: "Preencha todos os campos." };
+  if (!confirmar) return { campo: "confirmar", mensagem: "Preencha todos os campos." };
+  if (senha.length < SENHA_MIN) return { campo: "senha", mensagem: MSG_SENHA_CURTA };
+  if (senha !== confirmar) return { campo: "confirmar", mensagem: "As senhas não conferem." };
   return null;
+}
+
+export function validarNovaSenha(senha: string, confirmar: string): string | null {
+  return diagnosticarNovaSenha(senha, confirmar)?.mensagem ?? null;
 }

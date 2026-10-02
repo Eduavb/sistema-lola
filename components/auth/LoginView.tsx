@@ -10,7 +10,7 @@ import {
   esqueciAction,
   renovarSessaoAction,
 } from "@/app/entrar/actions";
-import { COPY, CAMPOS, aplicarMascara, validarFormulario, type Modo } from "@/components/auth/form";
+import { COPY, CAMPOS, aplicarMascara, diagnosticarFormulario, type Modo } from "@/components/auth/form";
 import "@/components/auth/auth.css";
 
 type Props = {
@@ -42,7 +42,9 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
   const router = useRouter();
   const [modo, setModo] = useState<Modo>(modoInicial);
   const [avisoSessao, setAvisoSessao] = useState("");
+  const [valores, setValores] = useState<Record<string, string>>({});
   const renovou = useRef(false);
+  const tituloRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (!renovar || renovou.current) return;
@@ -55,7 +57,10 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
 
   function ir(novo: Modo) {
     setModo(novo);
+    setAvisoSessao("");
+    setValores((v) => ({ ...v, senha: "" }));
     window.history.replaceState(null, "", urlDoModo(novo, next));
+    tituloRef.current?.focus();
   }
 
   const copy = COPY[modo];
@@ -89,13 +94,13 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
                   ← Voltar para entrar
                 </button>
               )}
-              <h1 className="auth-title">{copy.titulo}</h1>
+              <h1 className="auth-title" ref={tituloRef} tabIndex={-1}>
+                {copy.titulo}
+              </h1>
               <p className="auth-sub">{copy.subtitulo}</p>
             </div>
 
-            <div aria-live="polite">
-              {avisoSessao && <div className="auth-error">{avisoSessao}</div>}
-            </div>
+            <div aria-live="polite">{avisoSessao && <div className="auth-error">{avisoSessao}</div>}</div>
 
             {mostraAbas && (
               <div className="auth-tabs" role="group" aria-label="Acesso">
@@ -108,7 +113,15 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
               </div>
             )}
 
-            <Formulario key={modo} modo={modo} next={next} onEsqueci={() => ir("esqueci")} />
+            <Formulario
+              key={modo}
+              modo={modo}
+              next={next}
+              valores={valores}
+              setValores={setValores}
+              aoSubmeter={() => setAvisoSessao("")}
+              onEsqueci={() => ir("esqueci")}
+            />
 
             {mostraAbas && (
               <button type="button" className="auth-reseller" onClick={() => ir("revendedor")}>
@@ -128,11 +141,19 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
   );
 }
 
-function Formulario({ modo, next, onEsqueci }: { modo: Modo; next: string | null; onEsqueci: () => void }) {
+type FormularioProps = {
+  modo: Modo;
+  next: string | null;
+  valores: Record<string, string>;
+  setValores: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  aoSubmeter: () => void;
+  onEsqueci: () => void;
+};
+
+function Formulario({ modo, next, valores, setValores, aoSubmeter, onEsqueci }: FormularioProps) {
   const router = useRouter();
   const [estado, formAction, pendente] = useActionState<Estado, FormData>(ACOES[modo], {});
-  const [valores, setValores] = useState<Record<string, string>>({});
-  const [erroLocal, setErroLocal] = useState("");
+  const [diagnostico, setDiagnostico] = useState<{ campo: string; mensagem: string } | null>(null);
 
   useEffect(() => {
     if (estado.destino) router.replace(estado.destino);
@@ -140,19 +161,20 @@ function Formulario({ modo, next, onEsqueci }: { modo: Modo; next: string | null
 
   const enviado = !!estado.sent;
   const escondeForm = enviado && (modo === "revendedor" || modo === "esqueci");
-  const erro = erroLocal || estado.error || "";
+  const erro = diagnostico?.mensagem || estado.error || "";
 
   function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
-    const msg = validarFormulario(modo, valores);
-    if (msg) {
+    aoSubmeter();
+    const d = diagnosticarFormulario(modo, valores);
+    if (d) {
       e.preventDefault();
-      setErroLocal(msg);
+      setDiagnostico(d);
     }
   }
 
   function aoMudar(nome: string, valor: string) {
     setValores((v) => ({ ...v, [nome]: aplicarMascara(nome, valor) }));
-    setErroLocal("");
+    setDiagnostico(null);
   }
 
   return (
@@ -184,14 +206,14 @@ function Formulario({ modo, next, onEsqueci }: { modo: Modo; next: string | null
                 inputMode={c.inputMode}
                 value={valores[c.nome] ?? ""}
                 onChange={(e) => aoMudar(c.nome, e.target.value)}
-                aria-invalid={!!erro && !(valores[c.nome] ?? "").trim() ? true : undefined}
+                aria-invalid={diagnostico?.campo === c.nome ? true : undefined}
                 aria-describedby="auth-erro"
               />
             </div>
           ))}
 
-          <div id="auth-erro" className="auth-error" aria-live="polite">
-            {erro}
+          <div id="auth-erro" aria-live="polite">
+            {erro && <div className="auth-error">{erro}</div>}
           </div>
 
           <button type="submit" className="auth-submit" disabled={pendente}>

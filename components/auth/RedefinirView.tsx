@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { redefinirAction } from "@/app/entrar/actions";
-import { validarNovaSenha } from "@/components/auth/form";
+import { diagnosticarNovaSenha } from "@/components/auth/form";
 import { lerHashRecuperacao } from "@/components/auth/recuperacao";
 import "@/components/auth/auth.css";
 
@@ -71,7 +71,7 @@ function NovaSenha({ token }: { token: string }) {
   const [estado, formAction, pendente] = useActionState(redefinirAction, undefined);
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
-  const [erroLocal, setErroLocal] = useState("");
+  const [diagnostico, setDiagnostico] = useState<{ campo: string; mensagem: string } | null>(null);
 
   if (estado?.ok) {
     return (
@@ -89,13 +89,13 @@ function NovaSenha({ token }: { token: string }) {
     );
   }
 
-  const erro = erroLocal || estado?.error || "";
+  const erro = diagnostico?.mensagem || estado?.error || "";
 
   function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
-    const msg = validarNovaSenha(senha, confirmar);
-    if (msg) {
+    const d = diagnosticarNovaSenha(senha, confirmar);
+    if (d) {
       e.preventDefault();
-      setErroLocal(msg);
+      setDiagnostico(d);
     }
   }
 
@@ -121,8 +121,9 @@ function NovaSenha({ token }: { token: string }) {
             value={senha}
             onChange={(e) => {
               setSenha(e.target.value);
-              setErroLocal("");
+              setDiagnostico(null);
             }}
+            aria-invalid={diagnostico?.campo === "senha" ? true : undefined}
             aria-describedby="auth-erro"
           />
         </div>
@@ -140,15 +141,16 @@ function NovaSenha({ token }: { token: string }) {
             value={confirmar}
             onChange={(e) => {
               setConfirmar(e.target.value);
-              setErroLocal("");
+              setDiagnostico(null);
             }}
+            aria-invalid={diagnostico?.campo === "confirmar" ? true : undefined}
             aria-describedby="auth-erro"
           />
         </div>
-        <div id="auth-erro" className="auth-error" aria-live="polite">
-          {erro}
+        <div id="auth-erro" aria-live="polite">
+          {erro && <div className="auth-error">{erro}</div>}
         </div>
-        {erro && !erroLocal && (
+        {erro && !diagnostico && (
           <Link className="auth-link-inline" href="/entrar?modo=esqueci">
             Pedir um novo link
           </Link>

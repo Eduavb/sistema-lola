@@ -197,9 +197,6 @@
   font-size: 13px;
   color: var(--adm-pink-text);
 }
-.auth-error:empty {
-  display: none;
-}
 .auth-submit {
   width: 100%;
   height: 50px;

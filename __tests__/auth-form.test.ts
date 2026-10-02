@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { CAMPOS, aplicarMascara, normalizarModo, validarFormulario, validarNovaSenha } from "@/components/auth/form";
+import {
+  CAMPOS,
+  aplicarMascara,
+  diagnosticarFormulario,
+  diagnosticarNovaSenha,
+  normalizarModo,
+  validarFormulario,
+  validarNovaSenha,
+} from "@/components/auth/form";
 import { lerHashRecuperacao } from "@/components/auth/recuperacao";
 
 const CNPJ_OK = "11.222.333/0001-81";
@@ -81,6 +89,20 @@ describe("validarNovaSenha", () => {
     expect(validarNovaSenha("1234567", "1234567")).toBe("A senha precisa ter ao menos 8 caracteres.");
     expect(validarNovaSenha("12345678", "12345679")).toBe("As senhas não conferem.");
     expect(validarNovaSenha("12345678", "12345678")).toBeNull();
+  });
+});
+
+describe("diagnósticos por campo", () => {
+  it("aponta o campo responsável pela mensagem", () => {
+    expect(diagnosticarFormulario("entrar", { email: "a@b.com", senha: "" })?.campo).toBe("senha");
+    expect(diagnosticarFormulario("entrar", { email: "abc", senha: "x" })?.campo).toBe("email");
+    expect(diagnosticarFormulario("cadastro", { nome: "A", email: "a@b.com", senha: "1" })?.campo).toBe("senha");
+    expect(diagnosticarFormulario("entrar", { email: "a@b.com", senha: "x" })).toBeNull();
+  });
+  it("aponta senha curta e confirmação diferente", () => {
+    expect(diagnosticarNovaSenha("123", "123")?.campo).toBe("senha");
+    expect(diagnosticarNovaSenha("12345678", "1")?.campo).toBe("confirmar");
+    expect(diagnosticarNovaSenha("12345678", "12345678")).toBeNull();
   });
 });
 
