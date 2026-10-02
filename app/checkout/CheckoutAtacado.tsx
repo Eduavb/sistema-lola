@@ -1,0 +1,198 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { BRAND } from "@/lib/brand.config";
+import { avaliarCarrinhoAtacado, type ItemCarrinhoAtacado } from "@/lib/checkout";
+import { MIN_SKUS_ATACADO } from "@/lib/pricing";
+import { criarPedidoAtacado } from "./actions";
+import Header from "@/components/Header";
+import { SiteFooter } from "@/components/PaymentsFooter";
+import { CamposEntrega, DADOS_VAZIOS, type DadosForm } from "./CamposEntrega";
+
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export default function CheckoutAtacado({
+  itens,
+  total,
+}: {
+  itens: ItemCarrinhoAtacado[];
+  total: number;
+}) {
+  const [dados, setDados] = useState<DadosForm>(DADOS_VAZIOS);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const avaliacao = avaliarCarrinhoAtacado(itens);
+  const problemaPorId = new Map(avaliacao.problemas.map((p) => [p.id, p.motivo]));
+
+  function set<K extends keyof DadosForm>(campo: K, valor: DadosForm[K]) {
+    setDados((d) => ({ ...d, [campo]: valor }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (enviando || !avaliacao.liberado) return;
+    setErro(null);
+    setEnviando(true);
+
+    // Só dados de entrega: itens, preços e revendedor são definidos no servidor.
+    const res = await criarPedidoAtacado({
+      nome: dados.nome,
+      telefone: dados.telefone,
+      entregaTipo: dados.entregaTipo,
+      rua: dados.rua,
+      numero: dados.numero,
+      bairro: dados.bairro,
+      complemento: dados.complemento,
+      cep: dados.cep,
+      cidade: dados.cidade,
+    });
+
+    if (res.error) {
+      setErro(res.error);
+      setEnviando(false);
+      return;
+    }
+    if (res.url) {
+      // O carrinho de atacado só é esvaziado quando o pagamento é aprovado.
+      window.location.href = res.url;
+    }
+  }
+
+  return (
+    <>
+      <Header />
+      <section className="section">
+        <div className="wrap" style={{ maxWidth: 760 }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontWeight: 500,
+              fontSize: 28,
+              marginBottom: 8,
+            }}
+          >
+            Finalizar pedido de atacado
+          </h1>
+
+          <Link href="/atacado/carrinho" style={{ fontSize: 12.5, color: "var(--muted)" }}>
+            ← Voltar pro carrinho de atacado
+          </Link>
+
+          <div
+            style={{
+              marginTop: 22,
+              borderTop: "1px solid var(--line)",
+              paddingTop: 18,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 12,
+                color: "var(--muted)",
+                margin: 0,
+              }}
+            >
+              {avaliacao.skus} de {MIN_SKUS_ATACADO} SKUs distintos
+            </p>
+            {itens.map((i) => {
+              const problema = problemaPorId.get(i.id);
+              return (
+                <div key={i.id} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 12.5,
+                      color: "var(--muted)",
+                    }}
+                  >
+                    <span>
+                      {[i.nome, i.cor, i.tamanho].filter(Boolean).join(" · ")} × {i.quantidade}
+                    </span>
+                    <span>{brl(i.subtotal)}</span>
+                  </div>
+                  {problema && (
+                    <span role="alert" style={{ fontSize: 11.5, color: "#b23b3b" }}>
+                      {problema}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--ink)",
+                marginTop: 4,
+              }}
+            >
+              <span>Total dos produtos</span>
+              <span>{brl(total)}</span>
+            </div>
+          </div>
+
+          {!avaliacao.liberado ? (
+            <div style={{ textAlign: "center", padding: "28px 0" }}>
+              <p style={{ color: "#b23b3b", fontSize: 13.5, marginBottom: 18 }}>
+                {avaliacao.motivo}
+              </p>
+              <Link href="/atacado/carrinho" className="btn">
+                Ajustar carrinho de atacado
+              </Link>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 22 }}
+            >
+              <CamposEntrega dados={dados} set={set} />
+
+              {dados.entregaTipo === "entrega" && (
+                <p style={{ fontSize: 11.5, color: "var(--muted)", margin: 0 }}>
+                  Taxa de entrega calculada no checkout.
+                </p>
+              )}
+              {dados.entregaTipo === "entrega_fora" && (
+                <p style={{ fontSize: 11.5, color: "var(--muted)", margin: 0 }}>
+                  Frete a combinar pelo{" "}
+                  <a href={BRAND.whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    WhatsApp
+                  </a>
+                  .
+                </p>
+              )}
+
+              {erro && (
+                <p style={{ fontSize: 12.5, color: "#b23b3b", textAlign: "center" }}>{erro}</p>
+              )}
+
+              <button
+                className="btn"
+                type="submit"
+                disabled={enviando}
+                style={{ justifyContent: "center", opacity: enviando ? 0.6 : 1 }}
+              >
+                {enviando ? "Abrindo pagamento…" : "Ir para o pagamento →"}
+              </button>
+              <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", margin: 0 }}>
+                Pagamento com Pix ou cartão via Mercado Pago. Os preços são de atacado e
+                conferidos no servidor.
+              </p>
+            </form>
+          )}
+        </div>
+      </section>
+      <SiteFooter />
+    </>
+  );
+}
