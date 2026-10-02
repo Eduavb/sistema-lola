@@ -58,6 +58,7 @@ grant select on table profiles to authenticated;
 -- (o usuário pode editá-lo a qualquer momento) e o papel só muda por convite.
 -- Não rebaixa papel de equipe: convite de nível menor não reduz quem já é
 -- equipe; rebaixar é só via admin_set_user (que também apaga o convite).
+-- Convite é de uso único: consumido (apagado) assim que é lido com e-mail confirmado.
 create or replace function public.handle_auth_user()
 returns trigger language plpgsql security definer set search_path = public, extensions as $$
 declare
@@ -67,6 +68,7 @@ declare
   v_inicial papel_usuario;
 begin
   if new.email_confirmed_at is not null and v_email <> '' then
+    perform pg_advisory_xact_lock(hashtext('lola:profiles:papel'));
     select c.papel into v_convite from convites_papel c where c.email = v_email;
   end if;
 
@@ -91,6 +93,10 @@ begin
         then p.papel
       else v_convite
     end;
+
+  if v_convite is not null then
+    delete from convites_papel where email = v_email;
+  end if;
 
   return new;
 end $$;
@@ -232,6 +238,7 @@ declare
   v_email text := lower(trim(coalesce(p_email, '')));
   v_papel papel_usuario;
   v_atual papel_usuario;
+  v_aplicado boolean := false;
   r       record;
 begin
   perform assert_papel(array['superadmin','admin']);
@@ -277,11 +284,17 @@ begin
         raise exception 'é preciso manter ao menos um superadmin ativo';
       end if;
       update profiles set papel = v_papel where id = r.id;
+      v_aplicado := true;
     end if;
   end loop;
 
-  insert into convites_papel (email, papel) values (v_email, v_papel)
-  on conflict (email) do update set papel = excluded.papel, created_at = now();
+  -- Convite de uso único: aplicado na hora não fica pendente.
+  if v_aplicado then
+    delete from convites_papel where email = v_email;
+  else
+    insert into convites_papel (email, papel) values (v_email, v_papel)
+    on conflict (email) do update set papel = excluded.papel, created_at = now();
+  end if;
 end $$;
 
 create or replace function admin_list_convites()
