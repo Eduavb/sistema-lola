@@ -1,9 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Categoria } from "@/lib/types";
 import { slugify } from "@/lib/types";
 import { saveCategoria, deleteCategoria } from "@/app/admin/actions";
+import {
+  LIMITE_ARQUIVO_CATEGORIA,
+  QUALIDADE_JPEG_CATEGORIA,
+  dimensoesCategoria,
+  validarImagemCategoria,
+  validarTipoImagemCategoria,
+} from "@/lib/admin-categoria-imagem";
+
+function lerArquivo(arquivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result));
+    leitor.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+function carregarImagem(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Não foi possível abrir essa imagem."));
+    img.src = src;
+  });
+}
+
+async function prepararImagemCategoria(arquivo: File): Promise<string> {
+  const erroTipo = validarTipoImagemCategoria(arquivo.type);
+  if (erroTipo) throw new Error(erroTipo);
+  if (arquivo.size > LIMITE_ARQUIVO_CATEGORIA) {
+    throw new Error("Esse arquivo é grande demais. Use uma imagem de até 15 MB.");
+  }
+  const img = await carregarImagem(await lerArquivo(arquivo));
+  const { largura, altura } = dimensoesCategoria(img.naturalWidth, img.naturalHeight);
+  const canvas = document.createElement("canvas");
+  canvas.width = largura;
+  canvas.height = altura;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Seu navegador não conseguiu processar a imagem.");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, largura, altura);
+  ctx.drawImage(img, 0, 0, largura, altura);
+  const uri = canvas.toDataURL("image/jpeg", QUALIDADE_JPEG_CATEGORIA);
+  const erro = validarImagemCategoria(uri);
+  if (erro) throw new Error(erro);
+  return uri;
+}
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -80,6 +127,9 @@ export default function CategoriasTab({
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [lendoImagem, setLendoImagem] = useState(false);
+  const [erroImagem, setErroImagem] = useState<string | null>(null);
+  const imagemId = useId();
 
   const grupos: Categoria["grupo"][] = ["calcados", "acessorios"];
 
@@ -93,6 +143,21 @@ export default function CategoriasTab({
 
   function fecharForm() {
     setForm(null);
+    setErroImagem(null);
+  }
+
+  async function aoEscolherImagem(arquivo: File | undefined) {
+    if (!arquivo) return;
+    setErroImagem(null);
+    setLendoImagem(true);
+    try {
+      const uri = await prepararImagemCategoria(arquivo);
+      setForm((f) => (f ? { ...f, imagem: uri } : f));
+    } catch (e) {
+      setErroImagem(e instanceof Error ? e.message : "Não foi possível usar essa imagem.");
+    } finally {
+      setLendoImagem(false);
+    }
   }
 
   async function handleSave() {
@@ -113,6 +178,11 @@ export default function CategoriasTab({
         alert("O desconto de atacado deve ser um número entre 0 e 100.");
         return;
       }
+    }
+    const erroDaImagem = validarImagemCategoria(form.imagem);
+    if (erroDaImagem) {
+      setErroImagem(erroDaImagem);
+      return;
     }
     const slug = form.slug.trim() || slugify(form.nome);
     setSaving(true);
@@ -285,6 +355,53 @@ export default function CategoriasTab({
             </div>
           </div>
 
+          <div style={{ marginBottom: 20 }}>
+            <label htmlFor={imagemId} style={labelStyle}>
+              Imagem da categoria
+            </label>
+            <div className="adm-img-categoria">
+              {form.imagem ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.imagem} alt="Prévia da imagem da categoria" className="adm-img-categoria-previa" />
+              ) : (
+                <div className="adm-img-categoria-previa" aria-hidden="true" />
+              )}
+              <input
+                id={imagemId}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={lendoImagem}
+                onChange={(e) => {
+                  void aoEscolherImagem(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+                aria-describedby={imagemId + "-dica"}
+              />
+              {form.imagem && (
+                <button
+                  type="button"
+                  className="adm-btn-mini"
+                  onClick={() => {
+                    setErroImagem(null);
+                    setForm({ ...form, imagem: null });
+                  }}
+                >
+                  Remover imagem
+                </button>
+              )}
+            </div>
+            <div id={imagemId + "-dica"} style={hintStyle}>
+              {lendoImagem ? "Processando a imagem…" : "JPG, PNG ou WebP. A imagem é reduzida para até 800 px de largura."}
+            </div>
+            <div aria-live="polite">
+              {erroImagem && (
+                <div role="alert" className="adm-erro">
+                  {erroImagem}
+                </div>
+              )}
+            </div>
+          </div>
+
           <label
             style={{
               fontSize: 13,
@@ -305,7 +422,7 @@ export default function CategoriasTab({
           <div style={{ display: "flex", gap: 10 }}>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || lendoImagem}
               style={{
                 background: "var(--peach)",
                 color: "var(--ink)",
@@ -400,7 +517,8 @@ export default function CategoriasTab({
                           {c.ativo ? "sim" : "não"} · atacado:{" "}
                           {c.desconto_atacado_percentual != null
                             ? `${c.desconto_atacado_percentual}%`
-                            : "—"}
+                            : "—"}{" "}
+                          · imagem: {c.imagem ? "sim" : "não"}
                         </div>
                       </div>
                       <button

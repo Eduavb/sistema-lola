@@ -19,7 +19,6 @@ import {
   setSurpresa,
   fetchRevendedores,
   setRevendedorStatus,
-  upsertRevendedor,
   setDestaque,
   fetchEstoqueBaixo,
 } from "@/app/admin/actions";
@@ -33,6 +32,8 @@ import VisaoGeralTab from "./VisaoGeralTab";
 import RevendedoresTab from "./RevendedoresTab";
 import ProdutosTab from "./ProdutosTab";
 import TextosTab from "./TextosTab";
+import PromocoesTab from "./PromocoesTab";
+import UsuariosTab from "./UsuariosTab";
 import BannerTab from "./BannerTab";
 import Toast, { useToast } from "./Toast";
 
@@ -49,7 +50,9 @@ const SCREEN_TITLES: Record<AdminScreen, [string, string]> = {
   pedidos: ["Pedidos", "Todos os pedidos de varejo e atacado"],
   produtos: ["Produtos", "Gerencie visibilidade, destaque e desconto"],
   financeiro: ["Financeiro", "Receita, repasses e lançamentos"],
+  promocoes: ["Promoções", "Descontos por categoria, período e cupom"],
   revendedores: ["Revendedores", "Cadastros e solicitações de atacado"],
+  usuarios: ["Usuários", "Papéis, acessos e convites da equipe"],
   banner: ["Banner do hero", "O destaque principal da home da vitrine"],
   textos: ["Textos da loja", "Avisos, rodapé e chamadas da vitrine"],
 };
@@ -63,7 +66,7 @@ export default function AdminApp({
   initialConfig,
   initialEstoqueBaixo,
 }: {
-  perfil: { nome: string; papel: Papel };
+  perfil: { id: string; nome: string; papel: Papel };
   initialProducts: Product[];
   initialCategorias: Categoria[];
   initialOrders: Order[];
@@ -132,7 +135,7 @@ export default function AdminApp({
   }
   async function handleRevendedorStatus(id: string, status: "aprovado" | "recusado") {
     const { error } = await setRevendedorStatus(id, status);
-    if (error) alert(`Não deu pra atualizar o revendedor: ${error}`);
+    mostrarToast(error ?? (status === "aprovado" ? "Revendedor aprovado." : "Revendedor recusado."));
     await refreshRevendedores();
   }
 
@@ -284,17 +287,7 @@ export default function AdminApp({
             />
           )}
           {screen === "produtos" &&
-            (editingId !== null ? (
-              <ProductEditor
-                product={produtoEmEdicao}
-                categorias={categorias}
-                onChange={refreshProducts}
-                onDone={async () => {
-                  setEditingId(null);
-                  await refreshProducts();
-                }}
-              />
-            ) : produtosSubTab === "produtos" ? (
+            (produtosSubTab === "produtos" ? (
               <ProdutosTab
                 products={products}
                 busyId={busyId}
@@ -365,6 +358,20 @@ export default function AdminApp({
                 <CategoriasTab categorias={categorias} onChange={refreshCategorias} />
               </div>
             ))}
+          {screen === "produtos" && editingId !== null && (
+            <ProductEditor
+              key={editingId}
+              product={produtoEmEdicao}
+              categorias={categorias}
+              onChange={refreshProducts}
+              onDone={async () => {
+                setEditingId(null);
+                await refreshProducts();
+              }}
+            />
+          )}
+          {screen === "promocoes" && <PromocoesTab categorias={categorias} onToast={mostrarToast} />}
+          {screen === "usuarios" && <UsuariosTab ator={{ id: perfil.id, papel }} onToast={mostrarToast} />}
           {screen === "financeiro" && (
             <SalesTab
               products={products}
@@ -377,21 +384,12 @@ export default function AdminApp({
           {screen === "revendedores" && (
             <RevendedoresTab
               revendedores={revendedores}
+              papel={papel}
               onAprovar={podeAprovar ? (id) => handleRevendedorStatus(id, "aprovado") : undefined}
               onRecusar={podeAprovar ? (id) => handleRevendedorStatus(id, "recusado") : undefined}
-              onCadastrar={async (dados) => {
-                const { error } = await upsertRevendedor({
-                  id: null,
-                  razao_social: dados.razao_social,
-                  cnpj: "",
-                  responsavel: "",
-                  email: dados.email,
-                  whatsapp: "",
-                  cidade: dados.cidade,
-                  uf: "",
-                });
+              onSalvo={async (mensagem) => {
+                mostrarToast(mensagem);
                 await refreshRevendedores();
-                return error ? { error } : {};
               }}
             />
           )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Product, ProductColor, Categoria } from "@/lib/types";
+import Drawer from "./Drawer";
 
 // Limite de tamanho por foto: base64 vai num campo text[], e a server action
 // tem teto de 4 MB. ~1,5 MB por arquivo mantém a linha enxuta.
@@ -148,36 +149,18 @@ export default function ProductEditor({
   }
 
   return (
-    <div>
-      <button
-        onClick={onDone}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--ink)",
-          fontSize: 12.5,
-          cursor: "pointer",
-          marginBottom: 20,
-        }}
-      >
-        ← Voltar pra lista
-      </button>
-
-      <h2
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
-          fontSize: 22,
-          marginBottom: 22,
-        }}
-      >
-        {id ? "Editar produto" : "Novo produto"}
-      </h2>
-
+    <Drawer
+      aberto
+      largo
+      kicker={id ? "EDITAR PRODUTO" : "NOVO PRODUTO"}
+      titulo={id ? nome || product?.nome || "Produto" : "Cadastrar produto"}
+      onFechar={onDone}
+    >
+      <div>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
           gap: 20,
           marginBottom: 6,
         }}
@@ -223,7 +206,7 @@ export default function ProductEditor({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: 20 }}>
         <div>
           <label style={labelStyle}>Preço (R$)</label>
           <input
@@ -248,7 +231,7 @@ export default function ProductEditor({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: 20 }}>
         <div>
           <label style={labelStyle}>Desconto de varejo (%, opcional)</label>
           <input
@@ -352,7 +335,8 @@ export default function ProductEditor({
           Crie o produto acima pra depois adicionar cores, fotos e tamanhos.
         </p>
       )}
-    </div>
+      </div>
+    </Drawer>
   );
 }
 

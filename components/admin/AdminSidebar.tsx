@@ -10,6 +10,8 @@ import {
   Settings,
   ImageIcon,
   Type,
+  Percent,
+  UserCog,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand.config";
 import { rotuloPapel, type AdminScreen } from "@/lib/admin-acesso";
@@ -28,7 +30,13 @@ const GRUPOS: { rotulo: string; itens: ItemNav[] }[] = [
       { key: "financeiro", label: "Financeiro", Icon: Wallet },
     ],
   },
-  { rotulo: "Catálogo", itens: [{ key: "produtos", label: "Produtos", Icon: ShoppingBag }] },
+  {
+    rotulo: "Catálogo",
+    itens: [
+      { key: "produtos", label: "Produtos", Icon: ShoppingBag },
+      { key: "promocoes", label: "Promoções", Icon: Percent },
+    ],
+  },
   {
     rotulo: "Aparência",
     itens: [
@@ -36,7 +44,13 @@ const GRUPOS: { rotulo: string; itens: ItemNav[] }[] = [
       { key: "textos", label: "Textos da loja", Icon: Type },
     ],
   },
-  { rotulo: "Pessoas", itens: [{ key: "revendedores", label: "Revendedores", Icon: Users2 }] },
+  {
+    rotulo: "Pessoas",
+    itens: [
+      { key: "revendedores", label: "Revendedores", Icon: Users2 },
+      { key: "usuarios", label: "Usuários", Icon: UserCog },
+    ],
+  },
 ];
 
 export default function AdminSidebar({

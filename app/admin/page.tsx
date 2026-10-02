@@ -10,6 +10,7 @@ import {
   listarVendas,
 } from "./consultas";
 import AdminApp from "@/components/admin/AdminApp";
+import "./admin-cms.css";
 
 export const revalidate = 0;
 
@@ -29,7 +30,7 @@ export default async function AdminPage() {
 
   return (
     <AdminApp
-      perfil={{ nome: perfil.nome || perfil.email, papel: perfil.papel }}
+      perfil={{ id: perfil.id, nome: perfil.nome || perfil.email, papel: perfil.papel }}
       initialProducts={products}
       initialCategorias={categorias}
       initialOrders={orders}

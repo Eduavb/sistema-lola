@@ -12,6 +12,7 @@ export default function Drawer({
   titulo,
   onFechar,
   rodape,
+  largo,
   children,
 }: {
   aberto: boolean;
@@ -19,6 +20,7 @@ export default function Drawer({
   titulo: string;
   onFechar: () => void;
   rodape?: ReactNode;
+  largo?: boolean;
   children: ReactNode;
 }) {
   const painelRef = useRef<HTMLDivElement>(null);
@@ -90,7 +92,7 @@ export default function Drawer({
     >
       <div
         ref={painelRef}
-        className="adm-drawer"
+        className={largo ? "adm-drawer adm-drawer--largo" : "adm-drawer"}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
