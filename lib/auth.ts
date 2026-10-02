@@ -3,7 +3,13 @@ import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { supabase, supabaseComToken, supabaseEfemero } from "@/lib/supabase";
+import {
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  supabase,
+  supabaseComToken,
+  supabaseEfemero,
+} from "@/lib/supabase";
 import { nextSeguro } from "@/lib/validators";
 import type { Papel } from "@/lib/roles";
 import {
@@ -58,6 +64,16 @@ export async function gravarSessao(tokens: TokensSupabase): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_AT, tokens.access_token, opcoesCookie(maxAgeAccess(tokens.expires_in)));
   store.set(COOKIE_RT, tokens.refresh_token, opcoesCookie(REFRESH_MAX_AGE_S));
+}
+
+export async function encerrarNoSupabase(accessToken: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+  } catch {}
 }
 
 export async function apagarSessao(): Promise<void> {

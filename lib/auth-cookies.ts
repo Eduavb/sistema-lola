@@ -106,18 +106,42 @@ function origemValida(valor: string | null | undefined): string | null {
   }
 }
 
-export function origemSite(cabecalhos: LeitorCabecalhos, fallback?: string): string {
+/**
+ * Origem para links de e-mail. A URL configurada do site sempre vence; os
+ * headers da requisição só servem fora de produção (desenvolvimento local).
+ * Vazio = omitir o redirect e deixar o Supabase usar o Site URL do painel.
+ */
+export function origemSite(
+  cabecalhos: LeitorCabecalhos,
+  siteUrl: string | undefined,
+  ambiente: string | undefined = process.env.NODE_ENV
+): string {
+  if (siteUrl) return origemValida(siteUrl) ?? "";
+  if (ambiente === "production") return "";
+
   const doOrigin = origemValida(cabecalhos.get("origin"));
   if (doOrigin) return doOrigin;
 
   const host = cabecalhos.get("host");
   const proto = (cabecalhos.get("x-forwarded-proto") ?? "https").split(",")[0].trim().toLowerCase();
   if (host && /^[a-z0-9.-]+(:\d{1,5})?$/i.test(host) && (proto === "https" || proto === "http")) {
-    const montada = origemValida(`${proto}://${host}`);
-    if (montada) return montada;
+    return origemValida(`${proto}://${host}`) ?? "";
   }
+  return "";
+}
 
-  return origemValida(fallback) ?? "";
+export const MSG_CADASTRO_ENVIADO =
+  "Enviamos um link de confirmação para o seu e-mail. Confirme para entrar. Se você já tem conta, entre ou redefina a senha.";
+export const MSG_REVENDEDOR_ENVIADO = `Solicitação enviada. Seu cadastro está pendente de aprovação. ${MSG_CADASTRO_ENVIADO}`;
+
+export function resultadoCadastro(
+  erro: ErroAuth,
+  tipo: "cliente" | "revendedor"
+): { error?: string; sent?: string } {
+  const sucesso = { sent: tipo === "revendedor" ? MSG_REVENDEDOR_ENVIADO : MSG_CADASTRO_ENVIADO };
+  if (!erro) return sucesso;
+  if (erro.code === "user_already_exists" || erro.code === "email_exists") return sucesso;
+  return { error: mensagemErroAuth(erro, "cadastro") };
 }
 
 const MSG_GENERICA = "Não foi possível concluir agora. Tente de novo.";
@@ -149,9 +173,6 @@ export function mensagemErroAuth(erro: ErroAuth, contexto: ContextoErro = "geral
   }
   if (code === "signup_disabled") {
     return "Cadastro indisponível no momento.";
-  }
-  if (code === "user_already_exists" || code === "email_exists") {
-    return "Não foi possível concluir o cadastro. Se você já tem conta, entre ou redefina a senha.";
   }
   if (
     contexto === "redefinir" &&

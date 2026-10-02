@@ -11,6 +11,9 @@ import {
   opcoesCookie,
   origemSite,
   perfilDeJson,
+  resultadoCadastro,
+  MSG_CADASTRO_ENVIADO,
+  MSG_REVENDEDOR_ENVIADO,
 } from "@/lib/auth-cookies";
 
 function b64url(obj: unknown): string {
@@ -138,46 +141,69 @@ describe("maxAgeAccess", () => {
 });
 
 describe("origemSite", () => {
-  it("prefere o cabeçalho origin", () => {
-    expect(origemSite(cabecalhos({ origin: "https://lola.com.br", host: "outro.com" }))).toBe("https://lola.com.br");
+  const SITE = "https://lola.com.br";
+
+  describe("com NEXT_PUBLIC_SITE_URL definida", () => {
+    it("usa sempre a env, ignorando origin e host", () => {
+      const h = cabecalhos({ origin: "https://evil.com", host: "evil.com", "x-forwarded-proto": "https" });
+      expect(origemSite(h, SITE, "production")).toBe(SITE);
+      expect(origemSite(h, SITE, "development")).toBe(SITE);
+    });
+
+    it("normaliza a env com caminho", () => {
+      expect(origemSite(cabecalhos({}), "https://lola.com.br/qualquer", "production")).toBe(SITE);
+    });
+
+    it("env inválida em produção não cai nos headers", () => {
+      expect(origemSite(cabecalhos({ origin: "https://evil.com" }), "lixo", "production")).toBe("");
+    });
   });
 
-  it("normaliza origin com caminho", () => {
-    expect(origemSite(cabecalhos({ origin: "https://lola.com.br/qualquer" }))).toBe("https://lola.com.br");
+  describe("sem env em produção", () => {
+    it("ignora origin e host e devolve vazio", () => {
+      const h = cabecalhos({ origin: "https://evil.com", host: "evil.com" });
+      expect(origemSite(h, undefined, "production")).toBe("");
+      expect(origemSite(h, "", "production")).toBe("");
+    });
   });
 
-  it("usa host e x-forwarded-proto sem origin", () => {
-    expect(origemSite(cabecalhos({ host: "lola.com.br", "x-forwarded-proto": "https" }))).toBe("https://lola.com.br");
-  });
+  describe("sem env fora de produção (fallback de desenvolvimento)", () => {
+    const dev = (mapa: Record<string, string>) => origemSite(cabecalhos(mapa), undefined, "development");
 
-  it("aceita localhost com porta e proto http", () => {
-    expect(origemSite(cabecalhos({ host: "localhost:3000", "x-forwarded-proto": "http" }))).toBe("http://localhost:3000");
-  });
+    it("prefere o cabeçalho origin", () => {
+      expect(dev({ origin: "https://lola.com.br", host: "outro.com" })).toBe(SITE);
+    });
 
-  it("x-forwarded-proto com lista usa o primeiro", () => {
-    expect(origemSite(cabecalhos({ host: "lola.com.br", "x-forwarded-proto": "https,http" }))).toBe("https://lola.com.br");
-  });
+    it("normaliza origin com caminho", () => {
+      expect(dev({ origin: "https://lola.com.br/qualquer" })).toBe(SITE);
+    });
 
-  it("sem proto assume https", () => {
-    expect(origemSite(cabecalhos({ host: "lola.com.br" }))).toBe("https://lola.com.br");
-  });
+    it("usa host e x-forwarded-proto sem origin", () => {
+      expect(dev({ host: "lola.com.br", "x-forwarded-proto": "https" })).toBe(SITE);
+    });
 
-  it.each([
-    ["origin null", { origin: "null" }],
-    ["origin javascript", { origin: "javascript:alert(1)" }],
-    ["host com barra", { host: "lola.com.br/evil" }],
-    ["host com arroba", { host: "evil.com@lola.com.br" }],
-    ["proto estranho", { host: "lola.com.br", "x-forwarded-proto": "ftp" }],
-  ])("rejeita valores suspeitos e cai no fallback (%s)", (_rotulo, mapa) => {
-    expect(origemSite(cabecalhos(mapa), "https://fallback.com.br")).toBe("https://fallback.com.br");
-  });
+    it("aceita localhost com porta e proto http", () => {
+      expect(dev({ host: "localhost:3000", "x-forwarded-proto": "http" })).toBe("http://localhost:3000");
+    });
 
-  it("sem nada e sem fallback devolve vazio", () => {
-    expect(origemSite(cabecalhos({}))).toBe("");
-  });
+    it("x-forwarded-proto com lista usa o primeiro", () => {
+      expect(dev({ host: "lola.com.br", "x-forwarded-proto": "https,http" })).toBe(SITE);
+    });
 
-  it("fallback inválido devolve vazio", () => {
-    expect(origemSite(cabecalhos({}), "lixo")).toBe("");
+    it("sem proto assume https", () => {
+      expect(dev({ host: "lola.com.br" })).toBe(SITE);
+    });
+
+    it.each([
+      ["origin null", { origin: "null" }],
+      ["origin javascript", { origin: "javascript:alert(1)" }],
+      ["host com barra", { host: "lola.com.br/evil" }],
+      ["host com arroba", { host: "evil.com@lola.com.br" }],
+      ["proto estranho", { host: "lola.com.br", "x-forwarded-proto": "ftp" }],
+      ["nada", {}],
+    ])("rejeita valores suspeitos (%s)", (_rotulo, mapa) => {
+      expect(dev(mapa)).toBe("");
+    });
   });
 });
 
@@ -211,15 +237,35 @@ describe("mensagemErroAuth", () => {
     expect(mensagemErroAuth({ code: "session_not_found", status: 403 }, "redefinir")).toBe(msg);
   });
 
-  it("cadastro existente não revela a existência da conta", () => {
-    const msg = mensagemErroAuth({ code: "user_already_exists", message: "User already registered" }, "cadastro");
-    expect(msg).not.toMatch(/existe|cadastrad/i);
-  });
-
   it("erro desconhecido não vaza a mensagem original", () => {
     const msg = mensagemErroAuth({ code: "unexpected_failure", message: "db timeout at pg_xyz" });
     expect(msg).toBe("Não foi possível concluir agora. Tente de novo.");
     expect(mensagemErroAuth(null)).toBe("Não foi possível concluir agora. Tente de novo.");
+  });
+});
+
+describe("resultadoCadastro", () => {
+  it.each(["cliente", "revendedor"] as const)("%s: sucesso e e-mail existente dão resultado idêntico", (tipo) => {
+    const novo = resultadoCadastro(null, tipo);
+    expect(novo).toEqual({ sent: tipo === "cliente" ? MSG_CADASTRO_ENVIADO : MSG_REVENDEDOR_ENVIADO });
+    expect(resultadoCadastro({ code: "user_already_exists", message: "User already registered", status: 422 }, tipo)).toEqual(novo);
+    expect(resultadoCadastro({ code: "email_exists", status: 422 }, tipo)).toEqual(novo);
+  });
+
+  it("textos neutros", () => {
+    expect(MSG_CADASTRO_ENVIADO).toBe(
+      "Enviamos um link de confirmação para o seu e-mail. Confirme para entrar. Se você já tem conta, entre ou redefina a senha."
+    );
+    expect(MSG_REVENDEDOR_ENVIADO).toBe(
+      `Solicitação enviada. Seu cadastro está pendente de aprovação. ${MSG_CADASTRO_ENVIADO}`
+    );
+  });
+
+  it("outros erros viram mensagem de erro mapeada", () => {
+    expect(resultadoCadastro({ code: "weak_password" }, "cliente")).toEqual({
+      error: mensagemErroAuth({ code: "weak_password" }),
+    });
+    expect(resultadoCadastro({ status: 429 }, "revendedor").error).toMatch(/^Muitas tentativas/);
   });
 });
 

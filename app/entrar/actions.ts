@@ -1,8 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
-import { apagarSessao, getSessao, gravarSessao, perfilPorToken } from "@/lib/auth";
-import { analisarToken, mensagemErroAuth, origemSite } from "@/lib/auth-cookies";
+import { apagarSessao, encerrarNoSupabase, getSessao, gravarSessao, perfilPorToken } from "@/lib/auth";
+import { analisarToken, mensagemErroAuth, origemSite, resultadoCadastro } from "@/lib/auth-cookies";
 import { destinoPosLogin } from "@/lib/roles";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseComToken, supabaseEfemero } from "@/lib/supabase";
 import { cnpjValido, emailValido, nextSeguro } from "@/lib/validators";
@@ -47,13 +47,10 @@ export async function entrarAction(_prev: ResultadoEntrar | undefined, formData:
 
   const sessao = data.session;
   const perfil = await perfilPorToken(sessao.access_token);
-  if (!perfil) {
+  if (!perfil || !perfil.ativo) {
+    await encerrarNoSupabase(sessao.access_token);
     await apagarSessao();
-    return { error: "Não foi possível carregar sua conta. Tente de novo." };
-  }
-  if (!perfil.ativo) {
-    await apagarSessao();
-    return { error: "Conta desativada." };
+    return { error: perfil ? "Conta desativada." : "Não foi possível carregar sua conta. Tente de novo." };
   }
 
   await gravarSessao(sessao);
@@ -77,8 +74,7 @@ export async function cadastrarAction(_prev: ResultadoEnvio | undefined, formDat
     password: senha,
     options: { data: { nome }, ...(base ? { emailRedirectTo: `${base}/entrar` } : {}) },
   });
-  if (error) return { error: mensagemErroAuth(error, "cadastro") };
-  return { sent: "Conta criada. Confirme seu e-mail para entrar: enviamos um link para a sua caixa de entrada." };
+  return resultadoCadastro(error, "cliente");
 }
 
 export async function cadastrarRevendedorAction(
@@ -116,10 +112,7 @@ export async function cadastrarRevendedorAction(
       ...(base ? { emailRedirectTo: `${base}/entrar` } : {}),
     },
   });
-  if (error) return { error: mensagemErroAuth(error, "cadastro") };
-  return {
-    sent: "Solicitação enviada. Seu cadastro está pendente de aprovação. Confirme seu e-mail pelo link que enviamos.",
-  };
+  return resultadoCadastro(error, "revendedor");
 }
 
 export async function esqueciAction(_prev: ResultadoEnvio | undefined, formData: FormData): Promise<ResultadoEnvio> {
@@ -173,16 +166,10 @@ export async function redefinirAction(
 }
 
 export async function sairAction(): Promise<void> {
-  const sessao = await getSessao();
-  if (sessao) {
-    try {
-      await fetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
-        method: "POST",
-        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${sessao.accessToken}` },
-        cache: "no-store",
-      });
-    } catch {}
-  }
+  try {
+    const sessao = await getSessao({ renovar: true });
+    if (sessao) await encerrarNoSupabase(sessao.accessToken);
+  } catch {}
   await apagarSessao();
 }
 
@@ -191,14 +178,15 @@ export async function sairAction(): Promise<void> {
  * (Server Components não podem regravar cookies). Devolve o destino se a
  * sessão foi recuperada.
  */
-export async function renovarSessaoAction(next: string | null): Promise<{ destino?: string }> {
+export async function renovarSessaoAction(next: string | null): Promise<{ error?: string; destino?: string }> {
   const sessao = await getSessao({ renovar: true });
   if (!sessao) return {};
   const perfil = await perfilPorToken(sessao.accessToken);
   if (!perfil) return {};
   if (!perfil.ativo) {
+    await encerrarNoSupabase(sessao.accessToken);
     await apagarSessao();
-    return {};
+    return { error: "Conta desativada." };
   }
   return { destino: destinoPosLogin(perfil.papel, nextSeguro(next)) };
 }
