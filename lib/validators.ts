@@ -9,11 +9,11 @@ export function mascararCnpj(v: string): string {
 }
 
 export function mascararWhatsapp(v: string): string {
-  return v
-    .replace(/\D/g, "")
-    .slice(0, 11)
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  const corte = d.length === 10 ? 9 : 10;
+  return d
     .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2");
+    .replace(new RegExp(`^(.{${corte}})(\\d)`), "$1-$2");
 }
 
 function digitoCnpj(base: number[]): number {
@@ -36,11 +36,12 @@ export function cnpjValido(v: string): boolean {
 }
 
 export function emailValido(v: string): boolean {
-  return /^\S+@\S+\.\S+$/.test(v);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
 export function nextSeguro(next: string | null | undefined): string {
   if (!next || !next.startsWith("/")) return "/";
+  if (/[\u0000- \u007f]/.test(next)) return "/";
   if (next.startsWith("//") || next.startsWith("/\\")) return "/";
   return next;
 }
