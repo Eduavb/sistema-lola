@@ -92,6 +92,8 @@ create table if not exists carrinho_atacado (
 create index if not exists carrinho_atacado_product_idx on carrinho_atacado(product_id);
 create index if not exists carrinho_atacado_color_idx   on carrinho_atacado(color_id);
 create index if not exists carrinho_atacado_size_idx    on carrinho_atacado(size_id);
+create index if not exists orders_customer_idx   on orders(customer_id);
+create index if not exists orders_revendedor_idx on orders(revendedor_id);
 
 alter table revendedores     enable row level security;
 alter table carrinho_atacado enable row level security;
@@ -112,7 +114,10 @@ create policy carrinho_atacado_self_select on carrinho_atacado
 
 revoke all on table revendedores     from anon, authenticated;
 revoke all on table carrinho_atacado from anon, authenticated;
-grant select on table revendedores     to authenticated;
+-- Sem reviewed_at/reviewed_by: o revendedor não vê quem o revisou.
+grant select (id, user_id, razao_social, cnpj, responsavel, email, whatsapp,
+              cidade, uf, status, created_at)
+  on table revendedores to authenticated;
 grant select on table carrinho_atacado to authenticated;
 
 -- orders.revendedor_id existe desde 0001 como uuid solto. NOT VALID: não
@@ -296,6 +301,8 @@ begin
     from revendedores r where r.user_id = auth.uid());
 end $$;
 
+-- Itens de produto inativo seguem listados (disponivel=false), fora de
+-- sku_distintos e total.
 -- Preço: _preco_atacado(preco, override do produto, % da categoria) —
 -- override > % da categoria > preço de tabela; desconto de varejo nunca entra.
 create or replace function atacado_cart_get()
@@ -325,13 +332,13 @@ begin
   select
     coalesce(jsonb_agg(jsonb_build_object(
       'id', l.id, 'product_id', l.product_id, 'color_id', l.color_id, 'size_id', l.size_id,
-      'nome', l.nome, 'slug', l.slug, 'ativo', l.ativo, 'cor', l.cor, 'tamanho', l.tamanho,
+      'nome', l.nome, 'slug', l.slug, 'ativo', l.ativo, 'disponivel', l.ativo, 'cor', l.cor, 'tamanho', l.tamanho,
       'imagem', l.imagem, 'quantidade', l.quantidade,
       'preco_unit', l.preco_unit, 'preco_atacado', l.preco_unit,
       'estoque', l.estoque, 'subtotal', round(l.preco_unit * l.quantidade, 2))
       order by l.nome, l.cor, l.tamanho), '[]'::jsonb),
-    count(distinct (l.product_id, l.color_id, l.size_id))::int,
-    coalesce(sum(round(l.preco_unit * l.quantidade, 2)), 0)
+    (count(distinct (l.product_id, l.color_id, l.size_id)) filter (where l.ativo))::int,
+    coalesce(sum(round(l.preco_unit * l.quantidade, 2)) filter (where l.ativo), 0)
   into v_itens, v_skus, v_total
   from linhas l;
 
@@ -443,7 +450,8 @@ end $$;
 -- Cria sempre 'pendente' (supervisor cadastra mas não aprova). Ao ficar sem
 -- conta vinculada, vincula a conta de e-mail confirmado com o mesmo e-mail e
 -- eleva 'cliente' -> 'revendedor' (papéis de equipe intocados).
--- Supervisor trocando o e-mail de revendedor já revisado devolve-o a 'pendente'.
+-- Supervisor trocando o e-mail de revendedor aprovado devolve-o a 'pendente'
+-- (recusado continua recusado, com reviewed_at/by intactos).
 create or replace function admin_upsert_revendedor(
   p_id uuid, p_razao_social text, p_cnpj text, p_responsavel text, p_email text,
   p_whatsapp text, p_cidade text, p_uf text
@@ -487,14 +495,14 @@ begin
         razao_social = v_razao, cnpj = v_cnpj, responsavel = v_resp, email = v_email,
         whatsapp = v_whats, cidade = v_cidade, uf = v_uf,
         status = case
-          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status <> 'pendente'
+          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status = 'aprovado'
             then 'pendente'::revendedor_status
           else status end,
         reviewed_at = case
-          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status <> 'pendente'
+          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status = 'aprovado'
             then null else reviewed_at end,
         reviewed_by = case
-          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status <> 'pendente'
+          when v_meu = 'supervisor' and v_email <> v_atual.email and v_atual.status = 'aprovado'
             then null else reviewed_by end
       where id = p_id
       returning id into v_id;
