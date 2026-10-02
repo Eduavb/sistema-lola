@@ -17,13 +17,15 @@ import { sairAction } from "@/app/entrar/actions";
 
 export default function HeaderClient({
   categorias,
-  perfil,
+  perfil: perfilProp,
 }: {
   categorias: CategoriaNav[];
   perfil: PerfilNav | null;
 }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [contaAberta, setContaAberta] = useState(false);
+  const [saiu, setSaiu] = useState(false);
+  const perfil = saiu ? null : perfilProp;
   const [saindo, iniciarSaida] = useTransition();
   const router = useRouter();
   const contaRef = useRef<HTMLDivElement>(null);
@@ -66,6 +68,8 @@ export default function HeaderClient({
   function sair() {
     iniciarSaida(async () => {
       await sairAction();
+      setSaiu(true);
+      setContaAberta(false);
       router.push("/");
       router.refresh();
     });

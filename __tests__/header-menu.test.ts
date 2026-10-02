@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinoAjuda, itensMenuConta, linksCategorias, primeiroNome } from "@/lib/header-menu";
+import { dadosPublicosHeader, destinoAjuda, itensMenuConta, linksCategorias, primeiroNome } from "@/lib/header-menu";
 
 const WA = "https://wa.me/5581987307223";
 
@@ -71,6 +71,20 @@ describe("destinoAjuda", () => {
   it("caminho interno e âncora", () => {
     expect(destinoAjuda("/ok", WA)).toEqual({ href: "/ok", tipo: "interno" });
     expect(destinoAjuda("#ancora", WA)).toEqual({ href: "#ancora", tipo: "simples" });
+  });
+});
+
+describe("dadosPublicosHeader", () => {
+  it("remove o perfil e mantém só dados públicos", () => {
+    const r = dadosPublicosHeader({
+      categorias: [{ slug: "a", nome: "A" }],
+      perfil: { nome: "Ana", papel: "admin" },
+      avisoTexto: "oi",
+      avisoAtivo: "true",
+    });
+    expect(r).toEqual({ categorias: [{ slug: "a", nome: "A" }], avisoTexto: "oi", avisoAtivo: "true" });
+    expect("perfil" in r).toBe(false);
+    expect(JSON.stringify(r)).not.toContain("Ana");
   });
 });
 

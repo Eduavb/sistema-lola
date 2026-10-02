@@ -36,6 +36,18 @@ export function destinoAjuda(link: string | null | undefined, whatsappUrl: strin
   return padrao;
 }
 
+export type DadosPublicosHeader = {
+  categorias: CategoriaNav[];
+  avisoTexto: string;
+  avisoAtivo: string;
+};
+
+export function dadosPublicosHeader(
+  d: DadosPublicosHeader & { perfil?: unknown }
+): DadosPublicosHeader {
+  return { categorias: d.categorias, avisoTexto: d.avisoTexto, avisoAtivo: d.avisoAtivo };
+}
+
 export function primeiroNome(nome: string): string {
   return nome.trim().split(/\s+/)[0] ?? "";
 }

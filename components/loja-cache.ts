@@ -29,8 +29,12 @@ export function criarCache<T>(): Cache<T> {
  * hidratação sempre partem de null, então o primeiro render casa com o SSR;
  * navegações seguintes já saem preenchidas pelo cache do módulo.
  */
+export function useSnapshotCache<T>(cache: Cache<T>): T | null {
+  return useSyncExternalStore(cache.subscribe, cache.get, () => null);
+}
+
 export function useDadosCacheados<T>(cache: Cache<T>, buscar: () => Promise<T>): T | null {
-  const dados = useSyncExternalStore(cache.subscribe, cache.get, () => null);
+  const dados = useSnapshotCache(cache);
   useEffect(() => {
     let ativo = true;
     buscar()
