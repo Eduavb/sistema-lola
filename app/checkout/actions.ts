@@ -2,8 +2,14 @@
 
 import { headers } from "next/headers";
 import { authedSupabase } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { criarPreferencia, montarItensMP } from "@/lib/mercadopago";
-import { mensagemErroCheckout, validarEntrega, type DadosEntrega } from "@/lib/checkout";
+import {
+  deveTentarComoConvidado,
+  mensagemErroCheckout,
+  validarEntrega,
+  type DadosEntrega,
+} from "@/lib/checkout";
 
 export type { DadosEntrega } from "@/lib/checkout";
 
@@ -55,7 +61,7 @@ async function iniciarPedido(
   // Com sessão, o JWT vai junto e o banco deriva customer_id/revendedor_id de
   // auth.uid(); sem sessão, cliente anônimo (compra de convidado).
   const db = await authedSupabase({ renovar: true });
-  const { data, error } = await db.rpc("checkout_iniciar_pedido", {
+  const args = {
     p_cliente_nome: dados.nome.trim(),
     p_cliente_telefone: dados.telefone.trim(),
     p_entrega_tipo: dados.entregaTipo,
@@ -68,7 +74,16 @@ async function iniciarPedido(
       dados.entregaTipo === "entrega_fora" ? dados.cidade?.trim() ?? null : null,
     p_items: pItems,
     p_is_atacado: atacado,
-  });
+  };
+  let resposta = await db.rpc("checkout_iniciar_pedido", args);
+  const erroAuth = resposta.error
+    ? { status: resposta.status, code: resposta.error.code, message: resposta.error.message }
+    : null;
+  // JWT rejeitado no varejo: compra segue como convidado (atacado nunca).
+  if (deveTentarComoConvidado(erroAuth, atacado)) {
+    resposta = await supabase().rpc("checkout_iniciar_pedido", args);
+  }
+  const { data, error } = resposta;
 
   if (error || !data) {
     const amigavel = mensagemErroCheckout(error?.message, atacado);

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   avaliarCarrinhoAtacado,
+  deveTentarComoConvidado,
   mensagemErroCheckout,
   problemaLinhaAtacado,
   validarEntrega,
@@ -166,5 +167,39 @@ describe("avaliarCarrinhoAtacado", () => {
   it("quantidade não altera a contagem de SKUs", () => {
     const itens = [item({ quantidade: 30 }), item({ id: "l2", quantidade: 1 })];
     expect(avaliarCarrinhoAtacado(itens).skus).toBe(1);
+  });
+});
+
+describe("deveTentarComoConvidado", () => {
+  it("varejo com 401 tenta como convidado", () => {
+    expect(deveTentarComoConvidado({ status: 401, code: "", message: "JWT expired" }, false)).toBe(true);
+  });
+
+  it("varejo com PGRST301/302/303 tenta como convidado", () => {
+    for (const code of ["PGRST301", "PGRST302", "PGRST303"]) {
+      expect(deveTentarComoConvidado({ status: 400, code, message: "" }, false)).toBe(true);
+    }
+  });
+
+  it("erros de negócio não disparam", () => {
+    for (const message of [
+      "estoque insuficiente",
+      "mínimo de 12 SKUs distintos (carrinho tem 3)",
+      "revendedor não aprovado",
+    ]) {
+      expect(deveTentarComoConvidado({ status: 400, code: "P0001", message }, false)).toBe(false);
+    }
+    expect(
+      deveTentarComoConvidado({ status: 403, code: "42501", message: "revendedor não aprovado" }, false)
+    ).toBe(false);
+  });
+
+  it("sem erro não dispara", () => {
+    expect(deveTentarComoConvidado(null, false)).toBe(false);
+  });
+
+  it("atacado nunca dispara", () => {
+    expect(deveTentarComoConvidado({ status: 401, code: "PGRST301", message: "" }, true)).toBe(false);
+    expect(deveTentarComoConvidado({ status: 401, code: "", message: "" }, true)).toBe(false);
   });
 });

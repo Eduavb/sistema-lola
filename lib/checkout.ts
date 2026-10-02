@@ -76,6 +76,19 @@ export function mensagemErroCheckout(
   return null;
 }
 
+/**
+ * Varejo com sessão cujo JWT o PostgREST rejeitou (401 / PGRST30x): repetir
+ * como convidado. Erro de auth sai antes de a função rodar, então não duplica
+ * pedido. Atacado nunca: o erro precisa aparecer.
+ */
+export function deveTentarComoConvidado(
+  erro: { status?: number | null; code?: string | null; message?: string | null } | null,
+  atacado: boolean
+): boolean {
+  if (atacado || !erro) return false;
+  return erro.status === 401 || (erro.code ?? "").startsWith("PGRST30");
+}
+
 /** Linha de atacado_cart_get(). */
 export type ItemCarrinhoAtacado = {
   id: string;
