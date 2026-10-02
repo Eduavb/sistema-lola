@@ -214,8 +214,8 @@ begin
 end $$;
 
 drop function if exists admin_update_order_status(text, uuid, order_status);
--- 'pago' só via admin_settle_order (que baixa estoque e grava a venda); pedido
--- pago não volta a 'pendente' (reabriria a liquidação e baixaria estoque de novo).
+-- 'pago' só via admin_settle_order (que baixa estoque e grava a venda); nenhum
+-- pedido volta a 'pendente' (reabriria a liquidação e baixaria estoque de novo).
 create or replace function admin_update_order_status(p_id uuid, p_status order_status)
 returns void language plpgsql security definer set search_path = public, extensions as $$
 declare v_atual order_status;
@@ -225,8 +225,8 @@ begin
     raise exception 'use a liquidação manual para marcar como pago';
   end if;
   select status into v_atual from orders where id = p_id for update;
-  if v_atual = 'pago' and p_status = 'pendente' then
-    raise exception 'pedido pago não pode voltar a pendente';
+  if p_status = 'pendente' and v_atual <> 'pendente' then
+    raise exception 'pedido não pode voltar a pendente';
   end if;
   update orders set status = p_status where id = p_id;
 end $$;
