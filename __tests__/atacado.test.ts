@@ -4,8 +4,9 @@ import {
   badgeEstoque,
   calcularKpis,
   dataPtBr,
+  decisaoGate,
   decisaoFinalizar,
-  descontoMedio,
+  descontoMaximo,
   ehUuid,
   mensagemErroAtacado,
   normalizarCarrinho,
@@ -186,16 +187,16 @@ describe("rotuloStatusPedido", () => {
   });
 });
 
-describe("descontoMedio", () => {
-  it("média dos percentuais informados", () => {
-    expect(descontoMedio([30, 40, null, undefined])).toBe(35);
+describe("descontoMaximo", () => {
+  it("maior percentual informado", () => {
+    expect(descontoMaximo([30, 40, null, undefined])).toBe(40);
   });
   it("nulo sem dados", () => {
-    expect(descontoMedio([])).toBeNull();
-    expect(descontoMedio([null])).toBeNull();
+    expect(descontoMaximo([])).toBeNull();
+    expect(descontoMaximo([null])).toBeNull();
   });
   it("ignora valores fora de 0..100", () => {
-    expect(descontoMedio([-5, 120, 20])).toBe(20);
+    expect(descontoMaximo([-5, 120, 20])).toBe(20);
   });
 });
 
@@ -209,32 +210,32 @@ describe("calcularKpis", () => {
         pedido({ status: "cancelado", valor_total: 700 }),
         pedido({ status: "entregue", created_at: "2026-09-10T12:00:00Z", valor_total: 200 }),
       ],
-      descontoMedio: 35,
+      descontoMaximo: 35,
       agora,
     });
     expect(k.pedidosMes).toBe("2");
     expect(k.totalComprado).toBe(
       (1200).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
     );
-    expect(k.descontoAtacado).toBe("-35%");
+    expect(k.descontoAtacado).toBe("até 35%");
   });
   it("usa fuso de São Paulo na virada do mês", () => {
     const k = calcularKpis({
       pedidos: [pedido({ created_at: "2026-11-01T01:00:00Z" })],
-      descontoMedio: null,
+      descontoMaximo: null,
       agora,
     });
     expect(k.pedidosMes).toBe("1");
   });
   it("mostra traço quando não há dado confiável", () => {
-    const k = calcularKpis({ pedidos: null, descontoMedio: null, agora });
+    const k = calcularKpis({ pedidos: null, descontoMaximo: null, agora });
     expect(k).toEqual({ pedidosMes: "—", totalComprado: "—", descontoAtacado: "—" });
   });
   it("sem pedidos: zero pedidos no mês e traço no total", () => {
-    const k = calcularKpis({ pedidos: [], descontoMedio: 12.5, agora });
+    const k = calcularKpis({ pedidos: [], descontoMaximo: 12.5, agora });
     expect(k.pedidosMes).toBe("0");
     expect(k.totalComprado).toBe("—");
-    expect(k.descontoAtacado).toBe("-12,5%");
+    expect(k.descontoAtacado).toBe("até 12,5%");
   });
 });
 
@@ -272,6 +273,24 @@ describe("normalização de dados do banco", () => {
     const p = normalizarPedidos([pedido(), { id: 1 }, null]);
     expect(p).toHaveLength(1);
     expect(normalizarPedidos("x")).toBeNull();
+  });
+});
+
+describe("decisaoGate", () => {
+  it("sem sessão ou conta inativa pede login", () => {
+    expect(decisaoGate({ papel: null, ativo: false, status: null })).toBe("entrar");
+    expect(decisaoGate({ papel: "revendedor", ativo: false, status: "aprovado" })).toBe("entrar");
+  });
+  it("outros papéis ficam fora", () => {
+    expect(decisaoGate({ papel: "admin", ativo: true, status: "aprovado" })).toBe("fora");
+    expect(decisaoGate({ papel: "cliente", ativo: true, status: null })).toBe("fora");
+  });
+  it("revendedor segue o status do cadastro", () => {
+    expect(decisaoGate({ papel: "revendedor", ativo: true, status: "aprovado" })).toBe("aprovado");
+    expect(decisaoGate({ papel: "revendedor", ativo: true, status: "pendente" })).toBe("pendente");
+    expect(decisaoGate({ papel: "revendedor", ativo: true, status: "recusado" })).toBe("recusado");
+    expect(decisaoGate({ papel: "revendedor", ativo: true, status: null })).toBe("sem-cadastro");
+    expect(decisaoGate({ papel: "revendedor", ativo: true, status: "xyz" })).toBe("sem-cadastro");
   });
 });
 

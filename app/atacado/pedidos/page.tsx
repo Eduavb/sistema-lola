@@ -1,13 +1,14 @@
-import { authedSupabase } from "@/lib/auth";
 import { corStatus } from "@/lib/admin-status";
 import { formatarReais } from "@/lib/home";
 import { dataPtBr, pedidoIdCurto, rotuloStatusPedido } from "@/lib/atacado";
 import SwingTag from "@/components/SwingTag";
 import { carregarPedidos } from "../dados";
+import { exigirRevendedorAprovado } from "../gate";
 
 export default async function PedidosAtacadoPage() {
-  const db = await authedSupabase();
-  const pedidos = await carregarPedidos(db);
+  const g = await exigirRevendedorAprovado("/atacado/pedidos");
+  if (!g.ok) return g.gate;
+  const pedidos = await carregarPedidos(g.db);
 
   if (pedidos === null) {
     return <p className="atc-vazio">Não foi possível carregar seus pedidos agora. Tente de novo em instantes.</p>;

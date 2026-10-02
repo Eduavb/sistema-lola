@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { authedSupabase } from "@/lib/auth";
+import { getSessao } from "@/lib/auth";
+import { supabaseComToken } from "@/lib/supabase";
 import {
   ehUuid,
   mensagemErroAtacado,
@@ -10,12 +11,15 @@ import {
   proximaQuantidade,
   quantidadeValida,
 } from "@/lib/atacado";
+import { cadastroAprovado, registrarErro } from "./dados";
 
 export type ResultadoAcao = { error: string | null };
 
 const ERRO_ENTRADA = "Item inválido. Atualize a página e tente de novo.";
 const ERRO_ESTOQUE = "Não há mais estoque disponível para esse item.";
 const ERRO_ITEM_NAO_ENCONTRADO = "Esse item não está mais no seu carrinho.";
+const ERRO_SESSAO = "Sua sessão expirou. Entre novamente para continuar.";
+const ERRO_NAO_APROVADO = "Seu cadastro de revendedor não está aprovado.";
 
 function ok(): ResultadoAcao {
   revalidatePath("/atacado", "layout");
@@ -26,10 +30,22 @@ function falha(mensagem: string): ResultadoAcao {
   return { error: mensagem };
 }
 
-async function lerCarrinho(db: SupabaseClient) {
-  const { data, error } = await db.rpc("atacado_cart_get");
-  if (error) return { error, carrinho: null };
-  return { error: null, carrinho: normalizarCarrinho(data) };
+async function preparar(): Promise<{ db: SupabaseClient; erro: null } | { db: null; erro: string }> {
+  const sessao = await getSessao({ renovar: true });
+  if (!sessao) return { db: null, erro: ERRO_SESSAO };
+  const db = supabaseComToken(sessao.accessToken);
+  if (!(await cadastroAprovado(db))) return { db: null, erro: ERRO_NAO_APROVADO };
+  return { db, erro: null };
+}
+
+function falhaRpc(contexto: string, erro: { code?: string; message?: string }): ResultadoAcao {
+  registrarErro(contexto, erro);
+  return falha(mensagemErroAtacado(erro));
+}
+
+function falhaInesperada(contexto: string, e: unknown): ResultadoAcao {
+  registrarErro(contexto, { message: e instanceof Error ? e.message : String(e) });
+  return falha(mensagemErroAtacado(null));
 }
 
 export async function addAoCarrinho(
@@ -39,11 +55,13 @@ export async function addAoCarrinho(
 ): Promise<ResultadoAcao> {
   try {
     if (!ehUuid(productId) || !ehUuid(colorId) || !ehUuid(sizeId)) return falha(ERRO_ENTRADA);
-    const db = await authedSupabase({ renovar: true });
+    const { db, erro } = await preparar();
+    if (!db) return falha(erro);
 
-    const lido = await lerCarrinho(db);
-    if (lido.error) return falha(mensagemErroAtacado(lido.error));
-    const linha = lido.carrinho.itens.find(
+    const lido = await db.rpc("atacado_cart_get");
+    if (lido.error) return falhaRpc("addAoCarrinho/cart_get", lido.error);
+    const carrinho = normalizarCarrinho(lido.data);
+    const linha = carrinho.itens.find(
       (i) => i.product_id === productId && i.color_id === colorId && i.size_id === sizeId
     );
 
@@ -55,7 +73,8 @@ export async function addAoCarrinho(
         .eq("id", sizeId)
         .eq("color_id", colorId)
         .maybeSingle();
-      if (error || !data) return falha(ERRO_ENTRADA);
+      if (error) return falhaRpc("addAoCarrinho/estoque", error);
+      if (!data) return falha(ERRO_ENTRADA);
       estoque = Number((data as { estoque: number }).estoque);
     }
 
@@ -68,10 +87,10 @@ export async function addAoCarrinho(
       p_size_id: sizeId,
       p_quantidade: quantidade,
     });
-    if (error) return falha(mensagemErroAtacado(error));
+    if (error) return falhaRpc("addAoCarrinho/set_item", error);
     return ok();
-  } catch {
-    return falha(mensagemErroAtacado(null));
+  } catch (e) {
+    return falhaInesperada("addAoCarrinho", e);
   }
 }
 
@@ -81,11 +100,12 @@ export async function alterarQuantidade(
 ): Promise<ResultadoAcao> {
   try {
     if (!ehUuid(itemId) || !quantidadeValida(quantidade)) return falha(ERRO_ENTRADA);
-    const db = await authedSupabase({ renovar: true });
+    const { db, erro } = await preparar();
+    if (!db) return falha(erro);
 
-    const lido = await lerCarrinho(db);
-    if (lido.error) return falha(mensagemErroAtacado(lido.error));
-    const linha = lido.carrinho.itens.find((i) => i.id === itemId);
+    const lido = await db.rpc("atacado_cart_get");
+    if (lido.error) return falhaRpc("alterarQuantidade/cart_get", lido.error);
+    const linha = normalizarCarrinho(lido.data).itens.find((i) => i.id === itemId);
     if (!linha) return falha(ERRO_ITEM_NAO_ENCONTRADO);
     if (quantidade > linha.quantidade && quantidade > linha.estoque) return falha(ERRO_ESTOQUE);
 
@@ -95,21 +115,22 @@ export async function alterarQuantidade(
       p_size_id: linha.size_id,
       p_quantidade: quantidade,
     });
-    if (error) return falha(mensagemErroAtacado(error));
+    if (error) return falhaRpc("alterarQuantidade/set_item", error);
     return ok();
-  } catch {
-    return falha(mensagemErroAtacado(null));
+  } catch (e) {
+    return falhaInesperada("alterarQuantidade", e);
   }
 }
 
 export async function removerItem(itemId: string): Promise<ResultadoAcao> {
   try {
     if (!ehUuid(itemId)) return falha(ERRO_ENTRADA);
-    const db = await authedSupabase({ renovar: true });
+    const { db, erro } = await preparar();
+    if (!db) return falha(erro);
     const { error } = await db.rpc("atacado_cart_remove_item", { p_id: itemId });
-    if (error) return falha(mensagemErroAtacado(error));
+    if (error) return falhaRpc("removerItem", error);
     return ok();
-  } catch {
-    return falha(mensagemErroAtacado(null));
+  } catch (e) {
+    return falhaInesperada("removerItem", e);
   }
 }

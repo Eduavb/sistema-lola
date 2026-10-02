@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { precoAtacado } from "@/lib/pricing";
 import { selecionarLancamentos } from "@/lib/home";
 import {
-  descontoMedio,
+  descontoMaximo,
   normalizarCarrinho,
   normalizarPedidos,
   type CarrinhoAtacado,
@@ -31,11 +31,13 @@ export type ProdutoCatalogo = {
   categoria: string;
   preco: number;
   cores: CorCatalogo[];
-  created_at: string | null;
-  ordem: number;
-  ativo: boolean;
-  colors: { sizes: { estoque: number }[] }[];
 };
+
+export type Novidade = { id: string; nome: string; preco: number; foto: string | null };
+
+export function registrarErro(contexto: string, erro: { code?: string; message?: string } | null | undefined) {
+  console.error(`[atacado] ${contexto}`, { code: erro?.code ?? null, message: erro?.message ?? null });
+}
 
 export function agora(): Date {
   return new Date();
@@ -43,76 +45,135 @@ export function agora(): Date {
 
 export async function carregarCadastro(db: SupabaseClient): Promise<CadastroRevendedor> {
   const { data, error } = await db.rpc("atacado_me");
-  if (error || !data || typeof data !== "object") return null;
+  if (error) {
+    registrarErro("atacado_me", error);
+    return null;
+  }
+  if (!data || typeof data !== "object") return null;
   const r = data as { status?: unknown; razao_social?: unknown };
   if (r.status !== "pendente" && r.status !== "aprovado" && r.status !== "recusado") return null;
   return { status: r.status, razao_social: typeof r.razao_social === "string" ? r.razao_social : "" };
 }
 
+export async function cadastroAprovado(db: SupabaseClient): Promise<boolean> {
+  return (await carregarCadastro(db))?.status === "aprovado";
+}
+
 export async function carregarCarrinho(db: SupabaseClient): Promise<CarrinhoAtacado | null> {
   const { data, error } = await db.rpc("atacado_cart_get");
-  if (error) return null;
+  if (error) {
+    registrarErro("atacado_cart_get", error);
+    return null;
+  }
   return normalizarCarrinho(data);
 }
 
 export async function carregarPedidos(db: SupabaseClient): Promise<PedidoAtacado[] | null> {
   const { data, error } = await db.rpc("atacado_my_orders");
-  if (error) return null;
+  if (error) {
+    registrarErro("atacado_my_orders", error);
+    return null;
+  }
   return normalizarPedidos(data);
 }
 
 type LinhaProduto = Product & { created_at?: string | null };
 
-export async function carregarCatalogo(
-  db: SupabaseClient
-): Promise<{ produtos: ProdutoCatalogo[]; descontoMedio: number | null } | null> {
-  const { data, error } = await db
-    .from("products")
-    .select(
-      "*, categoria:categorias(id, nome, desconto_atacado_percentual, ativo), colors:product_colors(id, nome, hex, imagens, ordem, sizes:product_sizes(id, tamanho, estoque))"
-    )
-    .eq("ativo", true)
-    .order("ordem", { ascending: true })
-    .order("nome", { ascending: true });
-  if (error || !data) return null;
+const SELECT_CATALOGO =
+  "id, nome, preco, preco_atacado, ordem, ativo, created_at, categoria:categorias!inner(id, nome, desconto_atacado_percentual, ativo), colors:product_colors(id, nome, hex, imagens, ordem, sizes:product_sizes(id, tamanho, estoque))";
 
-  const linhas = data as unknown as LinhaProduto[];
-  const produtos = linhas.map<ProdutoCatalogo>((p) => {
-    const cores = [...(p.colors ?? [])]
-      .sort((a, b) => a.ordem - b.ordem)
-      .map<CorCatalogo>((c) => ({
-        id: c.id,
-        nome: c.nome,
-        hex: c.hex,
-        imagem: c.imagens?.[0] ?? null,
-        tamanhos: [...(c.sizes ?? [])].map((s) => ({
-          id: s.id,
-          tamanho: s.tamanho,
-          estoque: Number(s.estoque),
-        })),
-      }));
-    return {
-      id: p.id,
-      nome: p.nome,
-      categoria: p.categoria?.nome ?? "",
-      preco: precoAtacado(p, p.categoria),
-      cores,
-      created_at: p.created_at ?? null,
-      ordem: p.ordem,
-      ativo: p.ativo,
-      colors: cores.map((c) => ({ sizes: c.tamanhos })),
-    };
-  });
-
-  const categorias = new Map<string, number | null>();
-  for (const p of linhas) {
-    if (p.categoria && p.categoria.ativo) {
-      categorias.set(p.categoria.id, p.categoria.desconto_atacado_percentual);
-    }
-  }
-  return { produtos, descontoMedio: descontoMedio([...categorias.values()]) };
+function primeiraImagem(imagens: string[] | null | undefined): string | null {
+  return imagens?.find((i) => typeof i === "string" && i !== "") ?? null;
 }
 
-export function novidades(produtos: ProdutoCatalogo[]): ProdutoCatalogo[] {
-  return selecionarLancamentos(produtos, 4);
+function cores(p: LinhaProduto): CorCatalogo[] {
+  return [...(p.colors ?? [])]
+    .sort((a, b) => a.ordem - b.ordem)
+    .map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      hex: c.hex,
+      imagem: primeiraImagem(c.imagens),
+      tamanhos: (c.sizes ?? []).map((s) => ({
+        id: s.id,
+        tamanho: s.tamanho,
+        estoque: Number(s.estoque),
+      })),
+    }));
+}
+
+export async function carregarCatalogo(
+  db: SupabaseClient
+): Promise<ProdutoCatalogo[] | null> {
+  const { data, error } = await db
+    .from("products")
+    .select(SELECT_CATALOGO)
+    .eq("ativo", true)
+    .eq("categoria.ativo", true)
+    .order("ordem", { ascending: true })
+    .order("nome", { ascending: true });
+  if (error || !data) {
+    registrarErro("catalogo", error);
+    return null;
+  }
+
+  const linhas = data as unknown as LinhaProduto[];
+  return linhas.map<ProdutoCatalogo>((p) => ({
+    id: p.id,
+    nome: p.nome,
+    categoria: p.categoria?.nome ?? "",
+    preco: precoAtacado(p, p.categoria),
+    cores: cores(p),
+  }));
+}
+
+const JANELA_NOVIDADES = 12;
+
+export async function carregarNovidades(
+  db: SupabaseClient
+): Promise<Novidade[] | null> {
+  const { data, error } = await db
+    .from("products")
+    .select(SELECT_CATALOGO)
+    .eq("ativo", true)
+    .eq("categoria.ativo", true)
+    .order("created_at", { ascending: false })
+    .limit(JANELA_NOVIDADES);
+  if (error || !data) {
+    registrarErro("novidades", error);
+    return null;
+  }
+
+  const linhas = data as unknown as LinhaProduto[];
+  return selecionarLancamentos(
+    linhas.map((p) => ({
+      p,
+      id: p.id,
+      nome: p.nome,
+      ordem: p.ordem,
+      ativo: p.ativo,
+      created_at: p.created_at ?? null,
+      colors: (p.colors ?? []).map((c) => ({ sizes: c.sizes ?? [] })),
+    })),
+    4
+  ).map<Novidade>(({ p }) => ({
+    id: p.id,
+    nome: p.nome,
+    preco: precoAtacado(p, p.categoria),
+    foto: cores(p).find((c) => c.imagem)?.imagem ?? null,
+  }));
+}
+
+export async function carregarDescontoMaximo(db: SupabaseClient): Promise<number | null> {
+  const { data, error } = await db
+    .from("categorias")
+    .select("desconto_atacado_percentual")
+    .eq("ativo", true);
+  if (error || !data) {
+    registrarErro("categorias", error);
+    return null;
+  }
+  return descontoMaximo(
+    (data as { desconto_atacado_percentual: number | null }[]).map((c) => c.desconto_atacado_percentual)
+  );
 }

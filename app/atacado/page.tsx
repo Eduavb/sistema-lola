@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { authedSupabase } from "@/lib/auth";
 import { corStatus } from "@/lib/admin-status";
 import { formatarReais } from "@/lib/home";
 import {
@@ -9,24 +8,29 @@ import {
   rotuloStatusPedido,
 } from "@/lib/atacado";
 import SwingTag from "@/components/SwingTag";
-import { agora, carregarCarrinho, carregarCatalogo, carregarPedidos, novidades } from "./dados";
+import {
+  agora,
+  carregarCarrinho,
+  carregarDescontoMaximo,
+  carregarNovidades,
+  carregarPedidos,
+} from "./dados";
+import { exigirRevendedorAprovado } from "./gate";
 
 export default async function PainelAtacadoPage() {
-  const db = await authedSupabase();
-  const [carrinho, pedidos, catalogo] = await Promise.all([
+  const g = await exigirRevendedorAprovado("/atacado");
+  if (!g.ok) return g.gate;
+  const { db } = g;
+  const [carrinho, pedidos, lancamentos, desconto] = await Promise.all([
     carregarCarrinho(db),
     carregarPedidos(db),
-    carregarCatalogo(db),
+    carregarNovidades(db),
+    carregarDescontoMaximo(db),
   ]);
 
   const progresso = progressoSkus(carrinho?.sku_distintos ?? 0);
-  const kpis = calcularKpis({
-    pedidos,
-    descontoMedio: catalogo?.descontoMedio ?? null,
-    agora: agora(),
-  });
+  const kpis = calcularKpis({ pedidos, descontoMaximo: desconto, agora: agora() });
   const ultimos = (pedidos ?? []).slice(0, 5);
-  const lancamentos = catalogo ? novidades(catalogo.produtos) : [];
 
   return (
     <div className="atc-pilha">
@@ -122,13 +126,13 @@ export default async function PainelAtacadoPage() {
               Ver todos
             </Link>
           </div>
-          {catalogo === null ? (
+          {lancamentos === null ? (
             <p className="atc-vazio">Não foi possível carregar o catálogo agora.</p>
           ) : lancamentos.length === 0 ? (
             <p className="atc-vazio">Nenhum produto com estoque no momento.</p>
           ) : (
             lancamentos.map((p) => {
-              const foto = p.cores.find((c) => c.imagem)?.imagem ?? null;
+              const foto = p.foto;
               return (
                 <Link
                   key={p.id}

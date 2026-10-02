@@ -1,15 +1,16 @@
-import { authedSupabase } from "@/lib/auth";
 import CatalogoGrid from "@/components/atacado/CatalogoGrid";
 import { carregarCarrinho, carregarCatalogo } from "../dados";
+import { exigirRevendedorAprovado } from "../gate";
 
 export default async function CatalogoAtacadoPage() {
-  const db = await authedSupabase();
-  const [catalogo, carrinho] = await Promise.all([carregarCatalogo(db), carregarCarrinho(db)]);
+  const g = await exigirRevendedorAprovado("/atacado/catalogo");
+  if (!g.ok) return g.gate;
+  const [produtos, carrinho] = await Promise.all([carregarCatalogo(g.db), carregarCarrinho(g.db)]);
 
-  if (!catalogo) {
+  if (!produtos) {
     return <p className="atc-vazio">Não foi possível carregar o catálogo agora. Tente de novo em instantes.</p>;
   }
-  if (catalogo.produtos.length === 0) {
+  if (produtos.length === 0) {
     return <p className="atc-vazio">Nenhum produto disponível no momento.</p>;
   }
 
@@ -18,16 +19,5 @@ export default async function CatalogoAtacadoPage() {
     quantidade: i.quantidade,
   }));
 
-  return (
-    <CatalogoGrid
-      produtos={catalogo.produtos.map(({ id, nome, categoria, preco, cores }) => ({
-        id,
-        nome,
-        categoria,
-        preco,
-        cores,
-      }))}
-      noCarrinho={noCarrinho}
-    />
-  );
+  return <CatalogoGrid produtos={produtos} noCarrinho={noCarrinho} />;
 }

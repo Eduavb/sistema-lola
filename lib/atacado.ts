@@ -98,12 +98,12 @@ export function rotuloStatusPedido(status: string): string {
   return ROTULO_STATUS[status] ?? "Pendente";
 }
 
-export function descontoMedio(percentuais: (number | null | undefined)[]): number | null {
+export function descontoMaximo(percentuais: (number | null | undefined)[]): number | null {
   const validos = percentuais.filter(
     (p): p is number => typeof p === "number" && Number.isFinite(p) && p >= 0 && p <= 100
   );
   if (validos.length === 0) return null;
-  return validos.reduce((s, p) => s + p, 0) / validos.length;
+  return Math.max(...validos);
 }
 
 function mesNoFuso(d: Date): string {
@@ -115,18 +115,18 @@ function mesNoFuso(d: Date): string {
 
 function formatarPercentual(n: number): string {
   const arredondado = Math.round(n * 10) / 10;
-  return `-${arredondado.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+  return `até ${arredondado.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 }
 
 const STATUS_SEM_COMPRA = new Set(["pendente", "cancelado"]);
 
 export function calcularKpis({
   pedidos,
-  descontoMedio: desconto,
+  descontoMaximo: desconto,
   agora,
 }: {
   pedidos: PedidoAtacado[] | null;
-  descontoMedio: number | null;
+  descontoMaximo: number | null;
   agora: Date;
 }) {
   let pedidosMes = TRACO;
@@ -225,6 +225,21 @@ export function normalizarPedidos(data: unknown): PedidoAtacado[] | null {
     if (!r || !id || !created_at || !status || valor == null) return [];
     return [{ id, created_at, status, valor_total: valor, skus: numero(r.skus) ?? 0 }];
   });
+}
+
+export type DecisaoGate = "aprovado" | "entrar" | "fora" | "pendente" | "recusado" | "sem-cadastro";
+
+export function decisaoGate(entrada: {
+  papel: string | null;
+  ativo: boolean;
+  status: string | null;
+}): DecisaoGate {
+  if (entrada.papel === null || !entrada.ativo) return "entrar";
+  if (entrada.papel !== "revendedor") return "fora";
+  if (entrada.status === "aprovado") return "aprovado";
+  if (entrada.status === "pendente") return "pendente";
+  if (entrada.status === "recusado") return "recusado";
+  return "sem-cadastro";
 }
 
 export function pedidoIdCurto(id: string): string {
