@@ -110,11 +110,41 @@ export function temAlteracoes(atual: BannerDados, base: BannerDados): boolean {
   return JSON.stringify(montarRascunho(atual)) !== JSON.stringify(montarRascunho(base));
 }
 
+const IMAGEM_PERMITIDA = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+
+export function validarRascunhoServidor(dados: unknown): string | null {
+  if (!dados || typeof dados !== "object" || Array.isArray(dados)) return "Dados do banner inválidos.";
+  const d = dados as Record<string, unknown>;
+  const permitidas = [...CAMPOS_TEXTO, "cta2_mostrar", "imagem"] as string[];
+  for (const chave of Object.keys(d)) {
+    if (!permitidas.includes(chave)) return "Dados do banner inválidos.";
+  }
+  for (const campo of CAMPOS_TEXTO) {
+    const v = d[campo];
+    if (v === undefined || v === null) continue;
+    if (typeof v !== "string") return "Dados do banner inválidos.";
+    if (v.length > LIMITE_TEXTO_BANNER) {
+      return `Texto muito longo (máximo ${LIMITE_TEXTO_BANNER} caracteres).`;
+    }
+  }
+  if (d.cta2_mostrar !== undefined && typeof d.cta2_mostrar !== "boolean") return "Dados do banner inválidos.";
+  if (typeof d.cta1_link === "string") {
+    const erroLink = validarLinkBotao(d.cta1_link);
+    if (erroLink) return erroLink;
+  }
+  const img = d.imagem;
+  if (img !== undefined && img !== null) {
+    if (typeof img !== "string" || img.length > LIMITE_DATA_URI) return validarDataUri(String(img)) ?? "Foto inválida.";
+    if (!IMAGEM_PERMITIDA.test(img)) return "A foto deve ser JPG, PNG ou WebP.";
+  }
+  return null;
+}
+
 export type ErrosBanner = { titulo?: string; cta1_link?: string };
 
 export function validarBanner(dados: BannerDados): ErrosBanner {
   const erros: ErrosBanner = {};
-  if (dados.titulo.trim() === "") erros.titulo = "Informe o título do banner.";
+  if (dados.titulo.trim() === "" && !dados.imagem) erros.titulo = "Informe o título ou escolha uma foto.";
   const link = validarLinkBotao(dados.cta1_link);
   if (link) erros.cta1_link = link;
   return erros;

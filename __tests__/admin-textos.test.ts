@@ -5,6 +5,7 @@ import {
   chavesAlteradas,
   chavesDosGrupos,
   validarLinkTexto,
+  validarValoresServidor,
 } from "@/lib/admin-textos";
 import { TEXTOS_PADRAO } from "@/lib/textos";
 
@@ -37,6 +38,24 @@ describe("alterações", () => {
   it("permite esvaziar um campo", () => {
     const atual = { ...TEXTOS_PADRAO, "rodape.descricao": "" };
     expect(apenasAlteradas(atual, TEXTOS_PADRAO)).toEqual({ "rodape.descricao": "" });
+  });
+});
+
+describe("validarValoresServidor", () => {
+  it("aceita chaves conhecidas válidas", () => {
+    expect(validarValoresServidor({ "login.titulo": "Oi", "rodape.ajuda1_link": "tel:+5511999", "aviso.ativo": "false" })).toBeNull();
+  });
+  it("recusa chave desconhecida, não-string e > 500", () => {
+    expect(validarValoresServidor({ "x.y": "a" })).not.toBeNull();
+    expect(validarValoresServidor({ "login.titulo": 1 })).not.toBeNull();
+    expect(validarValoresServidor({ "login.titulo": "a".repeat(501) })).not.toBeNull();
+    expect(validarValoresServidor(null)).not.toBeNull();
+    expect(validarValoresServidor([])).not.toBeNull();
+  });
+  it("valida links e aviso.ativo", () => {
+    expect(validarValoresServidor({ "rodape.ajuda2_link": "javascript:x" })).not.toBeNull();
+    expect(validarValoresServidor({ "rodape.ajuda2_link": "//x.com" })).not.toBeNull();
+    expect(validarValoresServidor({ "aviso.ativo": "talvez" })).not.toBeNull();
   });
 });
 

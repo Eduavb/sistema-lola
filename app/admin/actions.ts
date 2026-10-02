@@ -15,9 +15,11 @@ import type {
   EstoqueBaixoItem,
 } from "@/lib/types";
 import { mesclarTextos } from "@/lib/textos";
+import { validarValoresServidor } from "@/lib/admin-textos";
 import {
   montarRascunho,
   normalizarServidor,
+  validarRascunhoServidor,
   type BannerDados,
   type BannerServidor,
 } from "@/lib/admin-banner";
@@ -440,6 +442,8 @@ export async function fetchTextos(): Promise<{ valores?: Record<string, string>;
 }
 
 export async function saveTextos(valores: Record<string, string>): Promise<{ error?: string }> {
+  const invalido = validarValoresServidor(valores);
+  if (invalido) return { error: invalido };
   const r = await chamarRpc("textos", "admin_set_textos", { p_valores: valores });
   return r.error ? { error: r.error } : {};
 }
@@ -452,6 +456,8 @@ export async function fetchBanner(): Promise<{ banner?: BannerServidor; error?: 
 }
 
 export async function saveBannerRascunho(dados: BannerDados): Promise<{ error?: string }> {
+  const invalido = validarRascunhoServidor(dados);
+  if (invalido) return { error: invalido };
   const r = await chamarRpc("banner", "admin_save_banner_rascunho", { p_dados: montarRascunho(dados) });
   return r.error ? { error: r.error } : {};
 }

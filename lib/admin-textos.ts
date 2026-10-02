@@ -91,6 +91,21 @@ export function apenasAlteradas(
   return saida;
 }
 
+export function validarValoresServidor(valores: unknown): string | null {
+  if (!valores || typeof valores !== "object" || Array.isArray(valores)) return "Textos inválidos.";
+  for (const [chave, valor] of Object.entries(valores as Record<string, unknown>)) {
+    if (!Object.prototype.hasOwnProperty.call(TEXTOS_PADRAO, chave)) return "Texto desconhecido.";
+    if (typeof valor !== "string") return "Textos inválidos.";
+    if (valor.length > LIMITE_TEXTO) return `Texto muito longo (máximo ${LIMITE_TEXTO} caracteres).`;
+    if (chave === "aviso.ativo" && valor !== "true" && valor !== "false") return "Valor inválido para a barra de aviso.";
+    if (chave.endsWith("_link")) {
+      const erro = validarLinkTexto(valor);
+      if (erro) return erro;
+    }
+  }
+  return null;
+}
+
 export const MSG_LINK_TEXTO =
   "O link deve começar com /, #, https://, mailto: ou tel:, sem espaços.";
 

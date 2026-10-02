@@ -11,6 +11,7 @@ import {
   validarBanner,
   validarDataUri,
   validarLinkBotao,
+  validarRascunhoServidor,
   validarTipoImagem,
 } from "@/lib/admin-banner";
 
@@ -134,6 +135,39 @@ describe("validarBanner", () => {
     expect(validarBanner({ ...BANNER_VAZIO, titulo: "" }).titulo).toBeTruthy();
     expect(validarBanner({ ...BANNER_VAZIO, titulo: "x", cta1_link: "ftp://a" }).cta1_link).toBeTruthy();
     expect(validarBanner({ ...BANNER_VAZIO, titulo: "x", cta1_link: "/ok" })).toEqual({});
+  });
+});
+
+describe("validarBanner: título ou foto", () => {
+  it("título vazio com foto é válido", () => {
+    expect(validarBanner({ ...BANNER_VAZIO, titulo: "", imagem: "data:image/jpeg;base64,AAAA" }).titulo).toBeUndefined();
+  });
+  it("sem título e sem foto é inválido", () => {
+    expect(validarBanner({ ...BANNER_VAZIO }).titulo).toBeTruthy();
+  });
+});
+
+describe("validarRascunhoServidor", () => {
+  const ok = { ...BANNER_VAZIO, titulo: "T", imagem: "data:image/png;base64,AAAA" };
+  it("aceita um rascunho válido", () => {
+    expect(validarRascunhoServidor(ok)).toBeNull();
+    expect(validarRascunhoServidor({ ...ok, imagem: null })).toBeNull();
+  });
+  it("recusa imagem que não seja jpeg/png/webp em base64", () => {
+    for (const img of ["data:image/svg+xml;base64,AAAA", "data:image/gif;base64,AAAA", "data:text/html;base64,AAAA", "javascript:x", "data:image/png;base64,AA AA", "data:image/png,AAAA"])
+      expect(validarRascunhoServidor({ ...ok, imagem: img })).not.toBeNull();
+  });
+  it("recusa imagem acima do limite", () => {
+    expect(validarRascunhoServidor({ ...ok, imagem: "data:image/jpeg;base64," + "A".repeat(LIMITE_DATA_URI) })).not.toBeNull();
+  });
+  it("recusa link inválido, texto longo, chave estranha e tipos errados", () => {
+    expect(validarRascunhoServidor({ ...ok, cta1_link: "javascript:x" })).not.toBeNull();
+    expect(validarRascunhoServidor({ ...ok, subtitulo: "a".repeat(301) })).not.toBeNull();
+    expect(validarRascunhoServidor({ ...ok, extra: "x" })).not.toBeNull();
+    expect(validarRascunhoServidor({ ...ok, cta2_mostrar: "sim" })).not.toBeNull();
+    expect(validarRascunhoServidor({ ...ok, titulo: 5 })).not.toBeNull();
+    expect(validarRascunhoServidor(null)).not.toBeNull();
+    expect(validarRascunhoServidor([])).not.toBeNull();
   });
 });
 

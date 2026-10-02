@@ -38,7 +38,7 @@ export default function BannerPreview({ dados }: { dados: BannerDados }) {
             overflowWrap: "anywhere",
           }}
         >
-          {dados.titulo || "Título do banner"}
+          {dados.titulo || (dados.imagem ? "" : "Título do banner")}
         </span>
         {dados.subtitulo && (
           <span style={{ fontSize: "max(10px, 2.5cqw)", lineHeight: 1.5 }}>{dados.subtitulo}</span>
