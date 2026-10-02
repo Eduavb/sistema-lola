@@ -24,14 +24,19 @@ function CtaLink({
   );
 }
 
-export default function Hero({ banner }: { banner: BannerHero }) {
+export default function Hero({
+  banner,
+  imagemSrc,
+}: {
+  banner: BannerHero;
+  imagemSrc: string | null;
+}) {
   return (
     <section className="home-hero">
-      {banner.imagem && (
+      {imagemSrc && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="home-hero-img" src={banner.imagem} alt="" />
+        <img className="home-hero-img" src={imagemSrc} alt="" decoding="async" fetchPriority="high" />
       )}
-      {banner.imagem && <div className="home-hero-veu" aria-hidden="true" />}
       <div className="home-hero-texto">
         <span className="home-hero-etiqueta">{banner.etiqueta}</span>
         <h1 className="home-hero-titulo">{banner.titulo}</h1>

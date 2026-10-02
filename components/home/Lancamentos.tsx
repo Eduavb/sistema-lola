@@ -103,7 +103,7 @@ export default function Lancamentos({
       {produtos.length === 0 ? (
         <p className="home-vazio">Os lançamentos chegam em breve.</p>
       ) : (
-        <div className="home-trilho" ref={trilho} role="region" aria-label={titulo}>
+        <div className="home-trilho" ref={trilho} role="region" aria-label={titulo} tabIndex={0}>
           {produtos.map((p) => {
             const favorito = favoritos.includes(p.id);
             return (

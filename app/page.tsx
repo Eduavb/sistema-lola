@@ -4,6 +4,7 @@ import { getPromocoesAtivas } from "@/lib/promocoes";
 import { getTextos } from "@/lib/textos";
 import { totalEstoque, type Product } from "@/lib/types";
 import { BANNER_PADRAO, normalizarBanner, paraCartaoLancamento, selecionarLancamentos } from "@/lib/home";
+import { hashCurtoImagem, parseDataUriImagem } from "@/lib/imagem";
 import { BRAND } from "@/lib/brand.config";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooterServer from "@/components/SiteFooterServer";
@@ -35,51 +36,60 @@ async function getProducts(): Promise<Product[]> {
 async function getBanner() {
   try {
     const { data, error } = await supabase().rpc("get_banner_hero");
-    if (error) return BANNER_PADRAO;
-    return normalizarBanner(data);
+    if (error) return { banner: BANNER_PADRAO, imagemSrc: null };
+    const banner = normalizarBanner(data);
+    const imagemSrc =
+      banner.imagem && parseDataUriImagem(banner.imagem)
+        ? `/api/banner-img?v=${hashCurtoImagem(banner.imagem)}`
+        : null;
+    return { banner: { ...banner, imagem: null }, imagemSrc };
   } catch {
-    return BANNER_PADRAO;
+    return { banner: BANNER_PADRAO, imagemSrc: null };
   }
 }
 
-async function getCategoriasVitrine(produtos: Product[]): Promise<CategoriaVitrine[]> {
-  const comProduto = new Map<string, NonNullable<Product["categoria"]>>();
-  for (const p of produtos) if (p.categoria) comProduto.set(p.categoria.id, p.categoria);
-  if (comProduto.size === 0) return [];
+type CategoriaLinha = CategoriaVitrine & { ordem: number };
 
-  const ordenar = <T extends { ordem: number; nome: string }>(lista: T[]) =>
-    lista.sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
-
+// O base64 da imagem fica só no servidor: a página guarda apenas a URL da rota
+// com cache (/api/categoria-img) e um hash curto que invalida quando a imagem muda.
+async function getCategoriasAtivas(): Promise<CategoriaLinha[]> {
   const { data, error } = await supabase()
     .from("categorias")
     .select("id, nome, slug, ordem, imagem")
-    .eq("ativo", true)
-    .in("id", [...comProduto.keys()]);
-
+    .eq("ativo", true);
   if (error || !data) {
     if (error) console.error(error);
-    return ordenar([...comProduto.values()]).map((c) => ({
-      id: c.id,
-      nome: c.nome,
-      slug: c.slug,
-      imagem: null,
-    }));
+    return [];
   }
-  return ordenar(data as (CategoriaVitrine & { ordem: number })[]).map((c) => ({
+  return (data as (Omit<CategoriaLinha, "imagem"> & { imagem: string | null })[]).map((c) => ({
     id: c.id,
     nome: c.nome,
     slug: c.slug,
-    imagem: c.imagem ?? null,
+    ordem: c.ordem,
+    imagem:
+      c.imagem && parseDataUriImagem(c.imagem)
+        ? `/api/categoria-img/${c.id}?v=${hashCurtoImagem(c.imagem)}`
+        : null,
   }));
 }
 
+function categoriasVitrine(ativas: CategoriaLinha[], produtos: Product[]): CategoriaVitrine[] {
+  const comEstoque = new Set(produtos.map((p) => p.categoria?.id));
+  return ativas
+    .filter((c) => comEstoque.has(c.id))
+    .sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"))
+    .map(({ id, nome, slug, imagem }) => ({ id, nome, slug, imagem }));
+}
+
 export default async function Home() {
-  const [produtosBase, promos, textos, banner] = await Promise.all([
-    getProducts(),
-    getPromocoesAtivas(),
-    getTextos(),
-    getBanner(),
-  ]);
+  const [produtosBase, promos, textos, { banner, imagemSrc }, categoriasAtivas] =
+    await Promise.all([
+      getProducts(),
+      getPromocoesAtivas(),
+      getTextos(),
+      getBanner(),
+      getCategoriasAtivas(),
+    ]);
   const todosAtivos = comDescontoEfetivo(produtosBase, promos);
   // Produto sem estoque em nenhuma cor/tamanho fica fora da vitrine
   // automaticamente — continua existindo no admin, só não aparece pro cliente.
@@ -88,14 +98,14 @@ export default async function Home() {
   const calcados = products.filter((p) => p.categoria?.grupo === "calcados");
   const acessorios = products.filter((p) => p.categoria?.grupo === "acessorios");
 
-  const categorias = await getCategoriasVitrine(products);
+  const categorias = categoriasVitrine(categoriasAtivas, products);
   const lancamentos = selecionarLancamentos(products).map(paraCartaoLancamento);
 
   return (
     <>
       <SiteHeader />
 
-      <Hero banner={banner} />
+      <Hero banner={banner} imagemSrc={imagemSrc} />
 
       <Categorias
         categorias={categorias}
@@ -110,6 +120,12 @@ export default async function Home() {
       />
 
       <BannerRevendedora textos={textos} />
+
+      <section className="home-secao home-todos" id="todos-os-produtos">
+        <div className="home-secao-cab">
+          <h2 className="home-titulo">Todos os produtos</h2>
+        </div>
+      </section>
 
       <GrupoSection
         id="calcados"

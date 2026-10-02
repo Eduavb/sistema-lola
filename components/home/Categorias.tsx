@@ -6,6 +6,7 @@ export type CategoriaVitrine = {
   id: string;
   nome: string;
   slug: string;
+  /** URL da rota de imagem com cache (nunca o base64). */
   imagem: string | null;
 };
 
@@ -32,7 +33,7 @@ export default function Categorias({
             <div className="home-cat-foto" style={{ background: corBlocoCategoria(i) }}>
               {c.imagem && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.imagem} alt={c.nome} loading="lazy" />
+                <img src={c.imagem} alt={c.nome} loading="lazy" decoding="async" />
               )}
             </div>
             <div className="home-cat-nome">
