@@ -13,8 +13,8 @@
 --     itens lidos de carrinho_atacado do servidor (p_items é ignorado); preço por
 --     _preco_atacado (nunca desconto de varejo); estoque por linha; mínimo de 12
 --     SKUs distintos. NÃO limpa o carrinho: isso acontece ao liquidar.
--- _settle_order: corpo de 0002 + limpeza do carrinho de atacado do revendedor
---   do pedido (mp_register_order_payment e admin_settle_order já chamam só com
+-- _settle_order: corpo de 0002 + remove do carrinho de atacado os SKUs do pedido
+--   (itens adicionados depois do checkout ficam; mp_register_order_payment e admin_settle_order já chamam só com
 --   o pedido 'pendente' e travado, então a liquidação continua única).
 -- =====================================================================
 
@@ -213,7 +213,7 @@ begin
 end $$;
 
 -- ========== LIQUIDAÇÃO ==========
--- Corpo de 0002; acréscimo: pedido de atacado esvazia o carrinho do revendedor.
+-- Corpo de 0002; acréscimo: pedido de atacado tira do carrinho os SKUs pagos.
 -- Continua sem security definer e sem grant (só as RPCs definer o chamam).
 create or replace function _settle_order(
   p_order_id uuid, p_mp_payment_id text, p_forma_pagamento text
@@ -241,8 +241,13 @@ begin
       p_mp_payment_id, 'aprovado', p_order_id);
   end loop;
 
+  -- Só os SKUs deste pedido: itens adicionados depois do checkout continuam.
   if v_ord.is_atacado and v_ord.revendedor_id is not null then
-    perform atacado_cart_clear_for(v_ord.revendedor_id);
+    delete from carrinho_atacado ca
+    using order_items i
+    where ca.revendedor_id = v_ord.revendedor_id
+      and i.order_id = p_order_id
+      and ca.size_id = i.size_id;
   end if;
 end $$;
 
