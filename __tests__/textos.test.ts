@@ -3,7 +3,8 @@ import { TEXTOS_PADRAO, mesclarTextos } from "@/lib/textos";
 
 describe("TEXTOS_PADRAO", () => {
   it("contém as chaves do seed", () => {
-    expect(Object.keys(TEXTOS_PADRAO)).toHaveLength(18);
+    expect(Object.keys(TEXTOS_PADRAO)).toHaveLength(19);
+    expect(TEXTOS_PADRAO["home.categorias_etiqueta"]).toBe("");
     expect(TEXTOS_PADRAO["login.titulo"]).toBe("Pisa confiante.");
     expect(TEXTOS_PADRAO["aviso.ativo"]).toBe("true");
   });

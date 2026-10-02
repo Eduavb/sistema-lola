@@ -3,8 +3,8 @@ import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/types";
 import { ORDER_STATUS_LABEL, entregaTipoLabel } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
-import Header from "@/components/Header";
-import { SiteFooter } from "@/components/PaymentsFooter";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooterServer from "@/components/SiteFooterServer";
 
 export const revalidate = 0;
 
@@ -89,7 +89,7 @@ export default async function PedidoPage({
 
   return (
     <>
-      <Header />
+      <SiteHeader />
       <section className="section">
         <div className="wrap" style={{ maxWidth: 640 }}>
           {banner && (
@@ -238,7 +238,7 @@ export default async function PedidoPage({
           </div>
         </div>
       </section>
-      <SiteFooter />
+      <SiteFooterServer />
     </>
   );
 }

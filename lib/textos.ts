@@ -15,6 +15,7 @@ export const TEXTOS_PADRAO: Record<string, string> = {
   "revendedora.texto":
     "Preço de atacado a partir de 12 modelos diferentes. Cadastro com CNPJ, aprovação rápida.",
   "revendedora.botao": "Quero ser revendedor",
+  "home.categorias_etiqueta": "",
   "home.categorias_titulo": "Categorias",
   "home.lancamentos_etiqueta": "ACABOU DE CHEGAR",
   "home.lancamentos_titulo": "Lançamentos",

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { authedSupabase, exigirPapel } from "@/lib/auth";
 import type { ItemCarrinhoAtacado } from "@/lib/checkout";
-import Header from "@/components/Header";
-import { SiteFooter } from "@/components/PaymentsFooter";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooterServer from "@/components/SiteFooterServer";
 import CheckoutVarejo from "./CheckoutVarejo";
 import CheckoutAtacado from "./CheckoutAtacado";
 
@@ -25,7 +25,7 @@ export default async function CheckoutPage({
     if (!naoAprovado) console.error("atacado_cart_get falhou:", error);
     return (
       <>
-        <Header />
+        <SiteHeader />
         <section className="section">
           <div className="wrap" style={{ maxWidth: 760, textAlign: "center", padding: "40px 0" }}>
             <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 22 }}>
@@ -38,7 +38,7 @@ export default async function CheckoutPage({
             </Link>
           </div>
         </section>
-        <SiteFooter />
+        <SiteFooterServer />
       </>
     );
   }
