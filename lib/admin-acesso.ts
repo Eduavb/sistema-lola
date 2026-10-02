@@ -63,6 +63,25 @@ export function podeExecutar(papel: Papel, acao: AcaoAdmin): boolean {
   return PAPEIS_DA_ACAO[acao].includes(papel);
 }
 
+export const MSG_SEM_PERMISSAO = "Sem permissão.";
+export const MSG_CONTA_DESATIVADA = "Conta desativada.";
+export const MSG_PERFIL_INDISPONIVEL = "Não foi possível confirmar sua conta agora. Tente de novo.";
+
+export type DecisaoAcesso =
+  | { ok: true }
+  | { ok: false; error: string; encerrarSessao: boolean };
+
+/** `perfil` nulo = get_my_profile falhou ou não devolveu perfil (pode ser transitório). */
+export function decidirAcesso(
+  perfil: { papel: Papel; ativo: boolean } | null,
+  acao: AcaoAdmin
+): DecisaoAcesso {
+  if (!perfil) return { ok: false, error: MSG_PERFIL_INDISPONIVEL, encerrarSessao: false };
+  if (!perfil.ativo) return { ok: false, error: MSG_CONTA_DESATIVADA, encerrarSessao: true };
+  if (!podeExecutar(perfil.papel, acao)) return { ok: false, error: MSG_SEM_PERMISSAO, encerrarSessao: false };
+  return { ok: true };
+}
+
 const ROTULO_PAPEL: Record<Papel, string> = {
   superadmin: "Superadmin",
   admin: "Admin",
@@ -103,10 +122,12 @@ export type OpcaoStatus = { status: OrderStatus; disabled: boolean };
 
 /**
  * 'pago' só por liquidação (settleOrder) e nada volta a 'pendente': o banco
- * recusa as duas transições em admin_update_order_status.
+ * recusa as duas transições em admin_update_order_status. Pendente só pode
+ * ser cancelado; para seguir, liquida-se o pedido.
  */
 export function opcoesStatusPedido(entrega: EntregaTipo, atual: OrderStatus): OpcaoStatus[] {
-  const base = entrega === "retirada" ? OPCOES_RETIRADA : OPCOES_ENTREGA;
+  const base: OrderStatus[] =
+    atual === "pendente" ? ["cancelado"] : entrega === "retirada" ? OPCOES_RETIRADA : OPCOES_ENTREGA;
   const opcoes = base.map((status) => ({ status, disabled: false }));
   return base.includes(atual) ? opcoes : [{ status: atual, disabled: true }, ...opcoes];
 }

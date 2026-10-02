@@ -1,9 +1,9 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getSessao, perfilPorToken } from "@/lib/auth";
+import { apagarSessao, encerrarNoSupabase, getSessao, perfilPorToken } from "@/lib/auth";
 import { supabaseComToken } from "@/lib/supabase";
-import { podeExecutar, type AcaoAdmin } from "@/lib/admin-acesso";
+import { MSG_PERFIL_INDISPONIVEL, decidirAcesso, type AcaoAdmin } from "@/lib/admin-acesso";
 import type {
   Product,
   Categoria,
@@ -27,7 +27,6 @@ import {
 
 export type { Revendedor } from "@/lib/types";
 
-const SEM_PERMISSAO = "Sem permissão.";
 const SEM_SESSAO = "Sessão expirada. Entre de novo.";
 
 type Guarda = { sb: SupabaseClient } | { error: string };
@@ -36,11 +35,15 @@ async function autorizar(acao: AcaoAdmin): Promise<Guarda> {
   try {
     const sessao = await getSessao({ renovar: true });
     if (!sessao) return { error: SEM_SESSAO };
-    const perfil = await perfilPorToken(sessao.accessToken);
-    if (!perfil || !perfil.ativo || !podeExecutar(perfil.papel, acao)) return { error: SEM_PERMISSAO };
-    return { sb: supabaseComToken(sessao.accessToken) };
+    const decisao = decidirAcesso(await perfilPorToken(sessao.accessToken), acao);
+    if (decisao.ok) return { sb: supabaseComToken(sessao.accessToken) };
+    if (decisao.encerrarSessao) {
+      await encerrarNoSupabase(sessao.accessToken);
+      await apagarSessao();
+    }
+    return { error: decisao.error };
   } catch {
-    return { error: SEM_SESSAO };
+    return { error: MSG_PERFIL_INDISPONIVEL };
   }
 }
 

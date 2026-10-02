@@ -1,8 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
   ADMIN_SCREENS,
+  MSG_CONTA_DESATIVADA,
+  MSG_PERFIL_INDISPONIVEL,
+  MSG_SEM_PERMISSAO,
   TELA_DA_SCREEN,
   cargasIniciais,
+  decidirAcesso,
   opcoesStatusPedido,
   podeExecutar,
   rotuloPapel,
@@ -176,18 +180,59 @@ describe("opcoesStatusPedido", () => {
     ]);
   });
 
-  it("status atual pago ou pendente aparece só como opção desabilitada no topo", () => {
+  it("status atual pago aparece só como opção desabilitada no topo", () => {
     const pago = opcoesStatusPedido("entrega", "pago");
     expect(pago[0]).toEqual({ status: "pago", disabled: true });
     expect(pago.slice(1).every((o) => !o.disabled)).toBe(true);
+  });
 
-    const pend = opcoesStatusPedido("retirada", "pendente");
-    expect(pend[0]).toEqual({ status: "pendente", disabled: true });
-    expect(valores(pend.slice(1))).toEqual(["preparando", "pronto_retirada", "retirado", "cancelado"]);
+  it("pedido pendente só pode ser cancelado (seguir é pela liquidação)", () => {
+    for (const entrega of ["entrega", "entrega_fora", "retirada"] as const) {
+      expect(opcoesStatusPedido(entrega, "pendente")).toEqual([
+        { status: "pendente", disabled: true },
+        { status: "cancelado", disabled: false },
+      ]);
+    }
   });
 
   it("status atual fora da lista do tipo de entrega aparece desabilitado", () => {
     const op = opcoesStatusPedido("retirada", "enviado");
     expect(op[0]).toEqual({ status: "enviado", disabled: true });
+  });
+});
+
+describe("decidirAcesso", () => {
+  const perfil = (papel: Papel, ativo = true) => ({ papel, ativo });
+
+  it("perfil ativo com papel permitido libera", () => {
+    expect(decidirAcesso(perfil("admin"), "catalogo")).toEqual({ ok: true });
+    expect(decidirAcesso(perfil("supervisor"), "pedidos")).toEqual({ ok: true });
+  });
+
+  it("perfil ativo sem o papel devolve Sem permissão, sem encerrar sessão", () => {
+    expect(decidirAcesso(perfil("supervisor"), "liquidar")).toEqual({
+      ok: false,
+      error: MSG_SEM_PERMISSAO,
+      encerrarSessao: false,
+    });
+    expect(MSG_SEM_PERMISSAO).toBe("Sem permissão.");
+  });
+
+  it("conta desativada encerra a sessão, mesmo com papel de equipe", () => {
+    expect(decidirAcesso(perfil("superadmin", false), "config")).toEqual({
+      ok: false,
+      error: MSG_CONTA_DESATIVADA,
+      encerrarSessao: true,
+    });
+    expect(MSG_CONTA_DESATIVADA).toBe("Conta desativada.");
+  });
+
+  it("perfil indisponível é erro temporário e não encerra a sessão", () => {
+    expect(decidirAcesso(null, "pedidos")).toEqual({
+      ok: false,
+      error: MSG_PERFIL_INDISPONIVEL,
+      encerrarSessao: false,
+    });
+    expect(MSG_PERFIL_INDISPONIVEL).toMatch(/Tente de novo/);
   });
 });
