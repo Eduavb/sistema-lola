@@ -2,12 +2,13 @@
 -- 0005_admin_por_sessao.sql — RPCs admin_* autenticadas por sessão + papel
 -- Substitui as admin_* de 0002_functions.sql: sai o parâmetro p_secret e o
 -- assert_admin (senha única); entra assert_papel(array[...]) conforme a matriz
--- do spec §4.4. Corpos idênticos aos de 0002, exceto a autorização e o
--- mascaramento de valores para supervisor em admin_list_sales.
+-- do spec §4.4. Corpos idênticos aos de 0002, exceto a autorização, o
+-- mascaramento de valores para supervisor em admin_list_sales e a trava de
+-- 'pago' em admin_update_order_status. Novas: admin_set_destaque, admin_estoque_baixo.
 -- A assinatura antiga é derrubada antes porque remover p_secret muda a
 -- assinatura (create or replace criaria uma sobrecarga em vez de substituir).
 -- Webhook (assert_webhook, mp_register_order_payment, _settle_order) não muda.
--- admin_config.secret_hash permanece (coluna legada; dados não são apagados).
+-- admin_config.secret_hash permanece como coluna legada, mas é zerada no fim.
 -- =====================================================================
 
 set search_path = public, extensions;
@@ -213,10 +214,20 @@ begin
 end $$;
 
 drop function if exists admin_update_order_status(text, uuid, order_status);
+-- 'pago' só via admin_settle_order (que baixa estoque e grava a venda); pedido
+-- pago não volta a 'pendente' (reabriria a liquidação e baixaria estoque de novo).
 create or replace function admin_update_order_status(p_id uuid, p_status order_status)
 returns void language plpgsql security definer set search_path = public, extensions as $$
+declare v_atual order_status;
 begin
   perform assert_papel(array['superadmin','admin','supervisor']);
+  if p_status = 'pago' then
+    raise exception 'use a liquidação manual para marcar como pago';
+  end if;
+  select status into v_atual from orders where id = p_id for update;
+  if v_atual = 'pago' and p_status = 'pendente' then
+    raise exception 'pedido pago não pode voltar a pendente';
+  end if;
   update orders set status = p_status where id = p_id;
 end $$;
 
@@ -239,6 +250,28 @@ begin
   perform _settle_order(p_order_id, 'manual-' || gen_random_uuid()::text,
     coalesce(p_forma_pagamento, 'Manual'));
   return jsonb_build_object('ok', true);
+end $$;
+
+-- ========== ESTOQUE BAIXO (visão geral) ==========
+-- Produtos ativos com estoque total (todas as cores/tamanhos) <= 5; sem tamanhos conta 0.
+drop function if exists admin_estoque_baixo();
+create or replace function admin_estoque_baixo()
+returns jsonb language plpgsql security definer set search_path = public, extensions stable as $$
+begin
+  perform assert_papel(array['superadmin','admin','supervisor']);
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', t.id, 'nome', t.nome, 'estoque', t.estoque)
+      order by t.estoque, t.nome)
+    from (
+      select p.id, p.nome, coalesce(sum(s.estoque), 0)::int as estoque
+      from products p
+      left join product_colors c on c.product_id = p.id
+      left join product_sizes s on s.color_id = c.id
+      where p.ativo
+      group by p.id, p.nome
+    ) t
+    where t.estoque <= 5
+  ), '[]'::jsonb);
 end $$;
 
 -- ========== VENDAS ==========
@@ -335,6 +368,7 @@ revoke all on function
   admin_list_orders(text),
   admin_update_order_status(uuid, order_status),
   admin_settle_order(uuid, text),
+  admin_estoque_baixo(),
   admin_list_sales(text),
   admin_insert_sale(uuid, text, int, numeric, numeric, text, text, text, text, uuid, boolean),
   admin_delete_sale(uuid),
@@ -360,9 +394,13 @@ grant execute on function
   admin_list_orders(text),
   admin_update_order_status(uuid, order_status),
   admin_settle_order(uuid, text),
+  admin_estoque_baixo(),
   admin_list_sales(text),
   admin_insert_sale(uuid, text, int, numeric, numeric, text, text, text, text, uuid, boolean),
   admin_delete_sale(uuid),
   admin_get_config(),
   admin_set_config(numeric, text, text)
 to authenticated;
+
+-- Senha única do admin aposentada: hash legado zerado (coluna mantida, nada mais o lê).
+update admin_config set secret_hash = '' where id = 1;
