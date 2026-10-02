@@ -23,13 +23,17 @@ export function linksCategorias(categorias: CategoriaNav[]): { href: string; rot
   ];
 }
 
-export function destinoAjuda(
-  link: string | undefined,
-  whatsappUrl: string
-): { href: string; externo: boolean } {
-  const alvo = (link ?? "").trim();
-  if (!alvo) return { href: whatsappUrl, externo: true };
-  return { href: alvo, externo: /^https?:\/\//i.test(alvo) };
+export type DestinoAjuda = { href: string; tipo: "nova-aba" | "simples" | "interno" };
+
+export function destinoAjuda(link: string | null | undefined, whatsappUrl: string): DestinoAjuda {
+  const padrao: DestinoAjuda = { href: whatsappUrl, tipo: "nova-aba" };
+  if (typeof link !== "string" || link === "") return padrao;
+  if (/[\s\u0000-\u001f\u007f\\]/.test(link)) return padrao;
+  if (/^https?:\/\/[^/]/i.test(link)) return { href: link, tipo: "nova-aba" };
+  if (/^(mailto|tel):\S+/i.test(link)) return { href: link, tipo: "simples" };
+  if (/^\/(?!\/)/.test(link)) return { href: link, tipo: "interno" };
+  if (/^#\S+/.test(link)) return { href: link, tipo: "simples" };
+  return padrao;
 }
 
 export function primeiroNome(nome: string): string {

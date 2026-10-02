@@ -823,3 +823,5 @@ input[type="checkbox"].swtoggle:checked::after { left:18px; }
   border-top: 1px solid #EFE0DB;
   padding-top: 20px;
 }
+
+.aviso-bar-reserva { min-height: 34px; }

@@ -1,32 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import AvisoBar from "@/components/home/AvisoBar";
 import HeaderClient from "@/components/HeaderClient";
 import { buscarDadosHeader } from "@/components/loja-actions";
+import { criarCache, useDadosCacheados } from "@/components/loja-cache";
 import type { DadosHeader } from "@/lib/header-dados";
 
-const VAZIO: DadosHeader = { categorias: [], perfil: null, avisoTexto: "", avisoAtivo: "false" };
+const cacheHeader = criarCache<DadosHeader>();
 
 export default function Header() {
-  const [dados, setDados] = useState<DadosHeader>(VAZIO);
-
-  useEffect(() => {
-    let ativo = true;
-    buscarDadosHeader()
-      .then((d) => {
-        if (ativo) setDados(d);
-      })
-      .catch(() => {});
-    return () => {
-      ativo = false;
-    };
-  }, []);
+  const dados = useDadosCacheados(cacheHeader, buscarDadosHeader);
 
   return (
     <>
-      <AvisoBar texto={dados.avisoTexto} ativo={dados.avisoAtivo} />
-      <HeaderClient categorias={dados.categorias} perfil={dados.perfil} />
+      {dados ? (
+        <AvisoBar texto={dados.avisoTexto} ativo={dados.avisoAtivo} />
+      ) : (
+        <div className="aviso-bar aviso-bar-reserva" aria-hidden="true" />
+      )}
+      <HeaderClient categorias={dados?.categorias ?? []} perfil={dados?.perfil ?? null} />
     </>
   );
 }

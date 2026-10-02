@@ -27,6 +27,7 @@ export default function HeaderClient({
   const [saindo, iniciarSaida] = useTransition();
   const router = useRouter();
   const contaRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const { totalItens } = useCart();
   const links = linksCategorias(categorias);
 
@@ -51,8 +52,15 @@ export default function HeaderClient({
     function esc(e: KeyboardEvent) {
       if (e.key === "Escape") setMenuAberto(false);
     }
+    function fora(e: MouseEvent) {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setMenuAberto(false);
+    }
     document.addEventListener("keydown", esc);
-    return () => document.removeEventListener("keydown", esc);
+    document.addEventListener("mousedown", fora);
+    return () => {
+      document.removeEventListener("keydown", esc);
+      document.removeEventListener("mousedown", fora);
+    };
   }, [menuAberto]);
 
   function sair() {
@@ -64,7 +72,7 @@ export default function HeaderClient({
   }
 
   return (
-    <header className="site-header">
+    <header className="site-header" ref={headerRef}>
       <div className="site-header-bar">
         <button
           type="button"

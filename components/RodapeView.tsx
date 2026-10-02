@@ -61,8 +61,12 @@ export default function RodapeView({
         <div className="site-footer-col">
           <span className="site-footer-rotulo">AJUDA</span>
           {ajuda.map((a) =>
-            a.destino.externo ? (
+            a.destino.tipo === "nova-aba" ? (
               <a key={a.n} href={a.destino.href} target="_blank" rel="noopener noreferrer">
+                {a.texto}
+              </a>
+            ) : a.destino.tipo === "simples" ? (
+              <a key={a.n} href={a.destino.href}>
                 {a.texto}
               </a>
             ) : (

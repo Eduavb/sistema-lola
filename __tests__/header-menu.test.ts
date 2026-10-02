@@ -36,16 +36,41 @@ describe("linksCategorias", () => {
 });
 
 describe("destinoAjuda", () => {
-  it("vazio vai para o WhatsApp", () => {
-    expect(destinoAjuda("", WA)).toEqual({ href: WA, externo: true });
-    expect(destinoAjuda("  ", WA)).toEqual({ href: WA, externo: true });
-    expect(destinoAjuda(undefined, WA)).toEqual({ href: WA, externo: true });
+  const ZAP = { href: WA, tipo: "nova-aba" };
+  it("vazio ou nulo vai para o WhatsApp", () => {
+    expect(destinoAjuda("", WA)).toEqual(ZAP);
+    expect(destinoAjuda("  ", WA)).toEqual(ZAP);
+    expect(destinoAjuda(undefined, WA)).toEqual(ZAP);
+    expect(destinoAjuda(null, WA)).toEqual(ZAP);
   });
-  it("http(s) é externo", () => {
-    expect(destinoAjuda("https://x.com/a", WA)).toEqual({ href: "https://x.com/a", externo: true });
+  it("esquemas perigosos e formatos suspeitos caem no WhatsApp", () => {
+    for (const v of [
+      "javascript:alert(1)",
+      "JAVASCRIPT:alert(1)",
+      "data:text/html,<b>x</b>",
+      "//evil.com",
+      "/\\evil",
+      " https://x",
+      "https://x.com/a b",
+      "/ok\nx",
+      "ftp://x.com",
+    ]) {
+      expect(destinoAjuda(v, WA)).toEqual(ZAP);
+    }
   });
-  it("caminho interno não é externo", () => {
-    expect(destinoAjuda("/minha-conta", WA)).toEqual({ href: "/minha-conta", externo: false });
+  it("http(s) abre em nova aba", () => {
+    expect(destinoAjuda("https://x.com", WA)).toEqual({ href: "https://x.com", tipo: "nova-aba" });
+  });
+  it("mailto e tel são links simples", () => {
+    expect(destinoAjuda("mailto:a@b.co", WA)).toEqual({ href: "mailto:a@b.co", tipo: "simples" });
+    expect(destinoAjuda("tel:+5511999999999", WA)).toEqual({
+      href: "tel:+5511999999999",
+      tipo: "simples",
+    });
+  });
+  it("caminho interno e âncora", () => {
+    expect(destinoAjuda("/ok", WA)).toEqual({ href: "/ok", tipo: "interno" });
+    expect(destinoAjuda("#ancora", WA)).toEqual({ href: "#ancora", tipo: "simples" });
   });
 });
 

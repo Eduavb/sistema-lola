@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import RodapeView from "@/components/RodapeView";
 import { buscarDadosRodape } from "@/components/loja-actions";
+import { criarCache, useDadosCacheados } from "@/components/loja-cache";
 import { TEXTOS_PADRAO } from "@/lib/textos";
 import type { DadosRodape } from "@/lib/header-dados";
 
@@ -18,22 +18,9 @@ export function PaymentsStrip() {
   );
 }
 
-const INICIAL: DadosRodape = { categorias: [], textos: TEXTOS_PADRAO };
+const cacheRodape = criarCache<DadosRodape>();
 
 export function SiteFooter() {
-  const [dados, setDados] = useState<DadosRodape>(INICIAL);
-
-  useEffect(() => {
-    let ativo = true;
-    buscarDadosRodape()
-      .then((d) => {
-        if (ativo) setDados(d);
-      })
-      .catch(() => {});
-    return () => {
-      ativo = false;
-    };
-  }, []);
-
-  return <RodapeView textos={dados.textos} categorias={dados.categorias} />;
+  const dados = useDadosCacheados(cacheRodape, buscarDadosRodape);
+  return <RodapeView textos={dados?.textos ?? TEXTOS_PADRAO} categorias={dados?.categorias ?? []} />;
 }
