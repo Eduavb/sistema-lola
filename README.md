@@ -26,7 +26,10 @@ as migrações 0004 a 0008; as 0001 a 0003 já estão no banco de produção.
    redefinição de senha). Faça redeploy depois de salvar.
 3. **Criar a conta do dono, somente pelo painel**: Supabase > Authentication >
    Users > **Add user**, com o e-mail do dono, uma senha forte e "Auto Confirm
-   User" marcado (não use o cadastro público de `/entrar` para o dono).
+   User" marcado (não use o cadastro público de `/entrar` para o dono). O
+   caminho preferido é fazer isto **ANTES** de rodar o SQL (janela zero). Se o
+   Add user disser que o e-mail já existe, apague essa conta e crie de novo;
+   **NUNCA** envie magic link ou recuperação de senha para uma conta não confirmada.
 
    **BLOQUEANTE (anti sequestro de conta):** antes de rodar o SQL e antes de
    **cada convite de equipe**, abra Authentication > Users e, se existir uma
@@ -87,6 +90,13 @@ Regras: só `superadmin` cria, edita ou desativa `superadmin`; ninguém rebaixa 
 desativa a si mesmo; sempre existe ao menos um `superadmin` ativo. Convites de
 papel são de uso único e só valem com e-mail confirmado. `revendedor` acessa o
 atacado somente com cadastro **aprovado**; `cliente` compra e vê os próprios pedidos.
+
+Notas: (a) se um funcionário criou a conta antes do re-convite e o admin
+re-convidou, a confirmação não promove: promova em Usuários. (b) Dívida aceita:
+o vínculo automático de um revendedor cadastrado manualmente no admin à conta
+com o mesmo e-mail não tem regra de data; antes de cadastrar um revendedor
+manualmente, confira em Authentication > Users e apague contas não confirmadas
+com aquele e-mail.
 
 Para **revogar o atacado** de alguém, recuse o cadastro em Revendedores (mudar o
 papel em Usuários não corta o atacado).

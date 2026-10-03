@@ -2253,7 +2253,7 @@ begin
 
   insert into public.convites_papel (email, papel)
   values (v_email, 'superadmin')
-  on conflict (email) do update set papel = 'superadmin';
+  on conflict (email) do update set papel = 'superadmin', created_at = now();
 
   -- Conta já existente e com e-mail confirmado: promove agora e consome o convite.
   select p.id into v_uid

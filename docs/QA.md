@@ -84,6 +84,12 @@ confirmar em produção, mas não são o foco da passada manual:
       o e-mail; o papel continua `cliente` e o convite segue pendente. A promoção
       só acontece por "Usuários" (superadmin/admin) ou apagando a conta e
       recriando-a depois do convite.
+- [ ] Conta do dono: criada por Add user + Auto Confirm ANTES do SQL; se o e-mail
+      já existir, apagar e recriar; nunca enviar magic link/recuperação a conta
+      não confirmada.
+- [ ] Funcionário que criou a conta antes do re-convite: a confirmação não
+      promove; promover em Usuários. Revendedor cadastrado manualmente: conferir
+      e apagar contas não confirmadas com o e-mail antes (vínculo sem regra de data).
 - [ ] Revogar atacado: recusar o cadastro em Revendedores corta o acesso; mudar o
       papel em Usuários não corta.
 
