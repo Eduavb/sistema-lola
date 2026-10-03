@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { deleteConvite, fetchConvites, fetchUsuarios, inviteUsuario, saveUsuario } from "@/app/admin/actions";
-import { rotuloPapel } from "@/lib/admin-acesso";
+import { dicaRevogarAtacado, rotuloPapel } from "@/lib/admin-acesso";
 import { podeGerirPapel, type Papel } from "@/lib/roles";
 import {
   FILTROS_PAPEL,
@@ -336,6 +336,11 @@ function UsuarioDrawer({
             </select>
           )}
         </Campo>
+        {dicaRevogarAtacado(usuario.papel) && (
+          <p className="adm-aviso" style={{ margin: 0 }}>
+            {dicaRevogarAtacado(usuario.papel)}
+          </p>
+        )}
         <label
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 13, cursor: bloqueio ? "not-allowed" : "pointer" }}
         >

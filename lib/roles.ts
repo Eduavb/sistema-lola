@@ -8,6 +8,7 @@ export const EQUIPE: Papel[] = ["superadmin", "admin", "supervisor"];
 export type Tela =
   | "visao-geral"
   | "pedidos"
+  | "vendas"
   | "financeiro"
   | "produtos"
   | "promocoes"
@@ -20,6 +21,7 @@ export type Tela =
 const MENU: Tela[] = [
   "visao-geral",
   "pedidos",
+  "vendas",
   "financeiro",
   "produtos",
   "promocoes",
@@ -30,10 +32,12 @@ const MENU: Tela[] = [
   "config",
 ];
 
+// "vendas" é a lista de vendas só leitura (sem valores) do supervisor; superadmin
+// e admin já a veem dentro de Financeiro.
 const ACESSO: Record<Papel, Tela[]> = {
-  superadmin: MENU,
-  admin: MENU.filter((t) => t !== "config"),
-  supervisor: ["visao-geral", "pedidos", "revendedores"],
+  superadmin: MENU.filter((t) => t !== "vendas"),
+  admin: MENU.filter((t) => t !== "config" && t !== "vendas"),
+  supervisor: ["visao-geral", "pedidos", "vendas", "revendedores"],
   revendedor: [],
   cliente: [],
 };

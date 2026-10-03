@@ -4,6 +4,7 @@ import { podeAcessar, type Papel, type Tela } from "@/lib/roles";
 export type AdminScreen =
   | "visao-geral"
   | "pedidos"
+  | "vendas"
   | "produtos"
   | "financeiro"
   | "promocoes"
@@ -15,6 +16,7 @@ export type AdminScreen =
 export const ADMIN_SCREENS: AdminScreen[] = [
   "visao-geral",
   "pedidos",
+  "vendas",
   "produtos",
   "financeiro",
   "promocoes",
@@ -27,6 +29,7 @@ export const ADMIN_SCREENS: AdminScreen[] = [
 export const TELA_DA_SCREEN: Record<AdminScreen, Tela> = {
   "visao-geral": "visao-geral",
   pedidos: "pedidos",
+  vendas: "vendas",
   produtos: "produtos",
   financeiro: "financeiro",
   promocoes: "promocoes",
@@ -105,6 +108,14 @@ export function decidirAcesso(
   if (!perfil.ativo) return { ok: false, error: MSG_CONTA_DESATIVADA, encerrarSessao: true };
   if (!podeExecutar(perfil.papel, acao)) return { ok: false, error: MSG_SEM_PERMISSAO, encerrarSessao: false };
   return { ok: true };
+}
+
+export const DICA_REVOGAR_ATACADO =
+  "Para revogar o atacado desta pessoa, recuse o cadastro em Revendedores: mudar o papel aqui não corta o acesso ao atacado.";
+
+/** Papel original do usuário: o atacado vem do cadastro de revendedor, não do papel. */
+export function dicaRevogarAtacado(papelOriginal: Papel): string | null {
+  return papelOriginal === "revendedor" ? DICA_REVOGAR_ATACADO : null;
 }
 
 const ROTULO_PAPEL: Record<Papel, string> = {

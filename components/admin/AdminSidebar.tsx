@@ -12,6 +12,7 @@ import {
   Type,
   Percent,
   UserCog,
+  Receipt,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand.config";
 import { rotuloPapel, type AdminScreen } from "@/lib/admin-acesso";
@@ -27,6 +28,7 @@ const GRUPOS: { rotulo: string; itens: ItemNav[] }[] = [
     itens: [
       { key: "visao-geral", label: "Visão geral", Icon: LayoutDashboard },
       { key: "pedidos", label: "Pedidos", Icon: ClipboardList },
+      { key: "vendas", label: "Vendas", Icon: Receipt },
       { key: "financeiro", label: "Financeiro", Icon: Wallet },
     ],
   },

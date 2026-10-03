@@ -16,6 +16,7 @@ import {
 const TODAS: Tela[] = [
   "visao-geral",
   "pedidos",
+  "vendas",
   "financeiro",
   "produtos",
   "promocoes",
@@ -26,10 +27,12 @@ const TODAS: Tela[] = [
   "config",
 ];
 
+// "vendas" é a lista de vendas só leitura do supervisor; superadmin e admin já
+// veem as vendas dentro de Financeiro, por isso não têm a tela separada.
 const MATRIZ: Record<Papel, Tela[]> = {
-  superadmin: TODAS,
-  admin: TODAS.filter((t) => t !== "config"),
-  supervisor: ["visao-geral", "pedidos", "revendedores"],
+  superadmin: TODAS.filter((t) => t !== "vendas"),
+  admin: TODAS.filter((t) => t !== "config" && t !== "vendas"),
+  supervisor: ["visao-geral", "pedidos", "vendas", "revendedores"],
   revendedor: [],
   cliente: [],
 };

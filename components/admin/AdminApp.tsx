@@ -26,6 +26,7 @@ import ProductEditor from "./ProductEditor";
 import CategoriasTab from "./CategoriasTab";
 import PedidosTab from "./PedidosTab";
 import SalesTab from "./SalesTab";
+import VendasLeituraTab from "./VendasLeituraTab";
 import ConfigTab from "./ConfigTab";
 import AdminSidebar, { type AdminScreen } from "./AdminSidebar";
 import VisaoGeralTab from "./VisaoGeralTab";
@@ -48,6 +49,7 @@ type Config = {
 const SCREEN_TITLES: Record<AdminScreen, [string, string]> = {
   "visao-geral": ["Visão geral", "Acompanhe o desempenho da loja em tempo real"],
   pedidos: ["Pedidos", "Todos os pedidos de varejo e atacado"],
+  vendas: ["Vendas", "Lista de vendas, somente leitura"],
   produtos: ["Produtos", "Gerencie visibilidade, destaque e desconto"],
   financeiro: ["Financeiro", "Receita, repasses e lançamentos"],
   promocoes: ["Promoções", "Descontos por categoria, período e cupom"],
@@ -372,6 +374,7 @@ export default function AdminApp({
           )}
           {screen === "promocoes" && <PromocoesTab categorias={categorias} onToast={mostrarToast} />}
           {screen === "usuarios" && <UsuariosTab ator={{ id: perfil.id, papel }} onToast={mostrarToast} />}
+          {screen === "vendas" && <VendasLeituraTab sales={sales} filtro={salesFiltro} onFiltro={handleSalesFiltro} />}
           {screen === "financeiro" && (
             <SalesTab
               products={products}

@@ -6,6 +6,7 @@ import {
   MSG_SEM_PERMISSAO,
   TELA_DA_SCREEN,
   cargasIniciais,
+  dicaRevogarAtacado,
   decidirAcesso,
   opcoesStatusPedido,
   podeExecutar,
@@ -97,8 +98,13 @@ describe("screens do admin", () => {
     expect(screensVisiveis("admin")).toEqual(todas);
   });
 
-  it("supervisor vê visão geral, pedidos e revendedores", () => {
-    expect(screensVisiveis("supervisor")).toEqual(["visao-geral", "pedidos", "revendedores"]);
+  it("supervisor vê visão geral, pedidos, vendas (só leitura) e revendedores, sem financeiro", () => {
+    expect(screensVisiveis("supervisor")).toEqual(["visao-geral", "pedidos", "vendas", "revendedores"]);
+    expect(screensVisiveis("supervisor")).not.toContain("financeiro");
+    expect(screensVisiveis("superadmin")).not.toContain("vendas");
+    expect(screensVisiveis("admin")).not.toContain("vendas");
+    expect(podeExecutar("supervisor", "vendas-leitura")).toBe(true);
+    expect(podeExecutar("supervisor", "vendas-escrita")).toBe(false);
   });
 
   it("supervisor não vê Aparência e não executa textos nem banner", () => {
@@ -275,5 +281,18 @@ describe("decidirAcesso", () => {
       encerrarSessao: false,
     });
     expect(MSG_PERFIL_INDISPONIVEL).toMatch(/Tente de novo/);
+  });
+});
+
+describe("dicaRevogarAtacado", () => {
+  it("aparece para quem é revendedor, qualquer que seja o papel escolhido", () => {
+    expect(dicaRevogarAtacado("revendedor")).toBe(
+      "Para revogar o atacado desta pessoa, recuse o cadastro em Revendedores: mudar o papel aqui não corta o acesso ao atacado."
+    );
+  });
+  it("não aparece para os demais papéis", () => {
+    for (const p of ["superadmin", "admin", "supervisor", "cliente"] as const) {
+      expect(dicaRevogarAtacado(p)).toBeNull();
+    }
   });
 });
