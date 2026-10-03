@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Product, ProductColor, Categoria } from "@/lib/types";
 import Drawer from "./Drawer";
+import { confirmarDescarte, temAlteracoes } from "@/lib/admin-rascunho";
 
 // Limite de tamanho por foto: base64 vai num campo text[], e a server action
 // tem teto de 4 MB. ~1,5 MB por arquivo mantém a linha enxuta.
@@ -69,6 +70,8 @@ export default function ProductEditor({
   const [colors, setColors] = useState<ProductColor[]>(product?.colors ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const atual = { nome, categoriaId, preco, precoAtacado, descricao, caracteristicas, desconto, ativo, destaque };
+  const [base, setBase] = useState(atual);
 
   const calcados = categorias.filter((c) => c.grupo === "calcados");
   const acessorios = categorias.filter((c) => c.grupo === "acessorios");
@@ -140,6 +143,7 @@ export default function ProductEditor({
       if (res.id && !id) {
         setId(res.id);
       }
+      setBase(atual);
       onChange();
     } catch {
       setError("Não foi possível salvar. Verifique sua internet e tente de novo.");
@@ -155,6 +159,7 @@ export default function ProductEditor({
       kicker={id ? "EDITAR PRODUTO" : "NOVO PRODUTO"}
       titulo={id ? nome || product?.nome || "Produto" : "Cadastrar produto"}
       onFechar={onDone}
+      confirmarFechar={() => confirmarDescarte(temAlteracoes(base, atual))}
     >
       <div>
       <div

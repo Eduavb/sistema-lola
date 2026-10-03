@@ -19,6 +19,7 @@ import {
   type Usuario,
 } from "@/lib/admin-usuarios";
 import Drawer from "./Drawer";
+import { confirmarDescarte, temAlteracoes } from "@/lib/admin-rascunho";
 import Campo from "./Campo";
 
 const COLUNAS = "1.3fr 1.4fr 130px 150px 90px 80px";
@@ -41,6 +42,7 @@ export default function UsuariosTab({
 }) {
   const [usuarios, setUsuarios] = useState<Usuario[] | null>(null);
   const [convites, setConvites] = useState<Convite[]>([]);
+  const [erroConvites, setErroConvites] = useState<string | null>(null);
   const [erroCarga, setErroCarga] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<FiltroPapel>("todos");
   const [editando, setEditando] = useState<Usuario | null>(null);
@@ -54,6 +56,7 @@ export default function UsuariosTab({
       if (u.usuarios) setUsuarios(u.usuarios);
       else setErroCarga(u.error ?? "Não foi possível carregar os usuários.");
       if (c.convites) setConvites(c.convites);
+      setErroConvites(c.convites ? null : (c.error ?? "Não foi possível carregar os convites."));
     });
     return () => {
       ativo = false;
@@ -64,6 +67,7 @@ export default function UsuariosTab({
     const [u, c] = await Promise.all([fetchUsuarios(), fetchConvites()]);
     if (u.usuarios) setUsuarios(u.usuarios);
     if (c.convites) setConvites(c.convites);
+    setErroConvites(c.convites ? null : (c.error ?? "Não foi possível carregar os convites."));
   }
 
   async function cancelarConvite(c: Convite) {
@@ -178,7 +182,11 @@ export default function UsuariosTab({
         <p className="adm-dica" style={{ margin: 0 }}>
           Cancelar só vale para convites ainda não usados. Quem já criou a conta com o e-mail convidado não é afetado: para mudar o papel dessa pessoa, use Editar na lista acima.
         </p>
-        {convites.length === 0 ? (
+        {erroConvites ? (
+          <div role="alert" className="adm-erro">
+            {erroConvites}
+          </div>
+        ) : convites.length === 0 ? (
           <div style={{ fontSize: 13, color: "var(--adm-text-secondary)" }}>Nenhum convite pendente.</div>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
@@ -262,6 +270,11 @@ function UsuarioDrawer({
   const [ativo, setAtivo] = useState(usuario.ativo);
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const inicial = useState({ papel, ativo })[0];
+  const alterado = temAlteracoes(inicial, { papel, ativo });
+  const fechar = () => {
+    if (confirmarDescarte(alterado)) onFechar();
+  };
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
@@ -283,9 +296,10 @@ function UsuarioDrawer({
       kicker="EDITAR USUÁRIO"
       titulo={usuario.nome || usuario.email}
       onFechar={onFechar}
+      confirmarFechar={() => confirmarDescarte(alterado)}
       rodape={
         <>
-          <button type="button" className="adm-btn" onClick={onFechar}>
+          <button type="button" className="adm-btn" onClick={fechar}>
             Cancelar
           </button>
           <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={Boolean(bloqueio) || ocupado}>
@@ -365,6 +379,11 @@ function ConviteDrawer({
   const [erros, setErros] = useState<{ email?: string; papel?: string }>({});
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const inicial = useState({ email, papel })[0];
+  const alterado = temAlteracoes(inicial, { email, papel });
+  const fechar = () => {
+    if (confirmarDescarte(alterado)) onFechar();
+  };
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -389,9 +408,10 @@ function ConviteDrawer({
       kicker="NOVO USUÁRIO"
       titulo="Adicionar usuário"
       onFechar={onFechar}
+      confirmarFechar={() => confirmarDescarte(alterado)}
       rodape={
         <>
-          <button type="button" className="adm-btn" onClick={onFechar}>
+          <button type="button" className="adm-btn" onClick={fechar}>
             Cancelar
           </button>
           <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={ocupado}>

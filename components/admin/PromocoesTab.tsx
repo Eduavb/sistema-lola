@@ -3,8 +3,11 @@
 import { useEffect, useId, useState } from "react";
 import type { Categoria } from "@/lib/types";
 import { deletePromocao, fetchPromocoes, savePromocao } from "@/app/admin/actions";
+import { confirmarDescarte, temAlteracoes } from "@/lib/admin-rascunho";
 import {
-  NOTA_CUPOM,
+  contarAtivas,
+  estadoPromocao,
+  notaDaPromocao,
   PROMOCAO_VAZIA,
   formatarPeriodo,
   promocaoParaForm,
@@ -17,7 +20,7 @@ import {
 import Drawer from "./Drawer";
 import Campo from "./Campo";
 
-const COLUNAS = "1.5fr 100px 1fr 180px 80px 80px";
+const COLUNAS = "1.5fr 100px 1fr 180px 150px 80px";
 
 type Editor = { promocao: Promocao | null };
 
@@ -79,7 +82,7 @@ export default function PromocoesTab({
     );
   }
 
-  const ativas = promocoes.filter((p) => p.ativa).length;
+  const ativas = contarAtivas(promocoes);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -93,7 +96,7 @@ export default function PromocoesTab({
       </div>
 
       <div className="adm-tabela">
-        <div className="adm-tabela-cab" style={{ gridTemplateColumns: COLUNAS, minWidth: 860 }}>
+        <div className="adm-tabela-cab" style={{ gridTemplateColumns: COLUNAS, minWidth: 930 }}>
           <div>PROMOÇÃO</div>
           <div>DESCONTO</div>
           <div>APLICA A</div>
@@ -105,7 +108,7 @@ export default function PromocoesTab({
           <div className="adm-tabela-vazia">Nenhuma promoção criada ainda.</div>
         ) : (
           promocoes.map((p) => (
-            <div key={p.id} className="adm-tabela-linha" style={{ gridTemplateColumns: COLUNAS, minWidth: 860 }}>
+            <div key={p.id} className="adm-tabela-linha" style={{ gridTemplateColumns: COLUNAS, minWidth: 930 }}>
               <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>{p.nome}</div>
                 {p.cupom && (
@@ -141,7 +144,10 @@ export default function PromocoesTab({
               >
                 {formatarPeriodo(p.inicio, p.fim)}
               </div>
-              <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {estadoPromocao(p) === "Guardada (cupom)" && (
+                  <span style={{ fontSize: 10.5, color: "var(--adm-purple-text)", lineHeight: 1.2 }}>Guardada (cupom)</span>
+                )}
                 <input
                   type="checkbox"
                   className="swtoggle"
@@ -196,6 +202,11 @@ function PromocaoDrawer({
   const [ocupado, setOcupado] = useState(false);
   const [confirmandoExcluir, setConfirmandoExcluir] = useState(false);
 
+  const inicial = useState(form)[0];
+  const alterado = temAlteracoes(inicial, form);
+  const fechar = () => {
+    if (confirmarDescarte(alterado)) onFechar();
+  };
   const opcoesCategoria = [...categorias].sort((a, b) => a.ordem - b.ordem);
 
   function alterar<K extends keyof PromocaoForm>(chave: K, valor: PromocaoForm[K]) {
@@ -239,6 +250,7 @@ function PromocaoDrawer({
       kicker={promocao ? "EDITAR PROMOÇÃO" : "NOVA PROMOÇÃO"}
       titulo={promocao ? promocao.nome : "Criar promoção"}
       onFechar={onFechar}
+      confirmarFechar={() => confirmarDescarte(alterado)}
       rodape={
         <>
           {promocao && (
@@ -267,7 +279,7 @@ function PromocaoDrawer({
               )}
             </div>
           )}
-          <button type="button" className="adm-btn" onClick={onFechar}>
+          <button type="button" className="adm-btn" onClick={fechar}>
             Cancelar
           </button>
           <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={ocupado}>
@@ -301,7 +313,7 @@ function PromocaoDrawer({
             />
           )}
         </Campo>
-        <Campo rotulo="Aplica a">
+        <Campo rotulo="Aplica a" erro={erros.categoriaId}>
           {(p) => (
             <select
               {...p}
@@ -323,11 +335,6 @@ function PromocaoDrawer({
             </select>
           )}
         </Campo>
-        {erros.categoriaId && (
-          <span role="alert" className="adm-erro">
-            {erros.categoriaId}
-          </span>
-        )}
         <div className="adm-linha-campos">
           <Campo rotulo="Início" erro={erros.inicio}>
             {(p) => (
@@ -370,7 +377,7 @@ function PromocaoDrawer({
           )}
         </Campo>
         <p className="adm-nota" style={{ margin: 0 }}>
-          {NOTA_CUPOM}
+          {notaDaPromocao(form.cupom)}
         </p>
         <label
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: 13, cursor: "pointer" }}

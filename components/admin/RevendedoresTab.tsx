@@ -2,7 +2,8 @@
 
 import { useId, useState } from "react";
 import type { Revendedor } from "@/lib/types";
-import type { Papel } from "@/lib/roles";
+import { podeAprovarRevendedor, type Papel } from "@/lib/roles";
+import { confirmarDescarte, temAlteracoes } from "@/lib/admin-rascunho";
 import SwingTag from "@/components/SwingTag";
 import { corStatus } from "@/lib/admin-status";
 import { saveRevendedor } from "@/app/admin/actions";
@@ -161,6 +162,11 @@ function RevendedorDrawer({
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
+  const inicial = useState(form)[0];
+  const alterado = temAlteracoes(inicial, form);
+  const fechar = () => {
+    if (confirmarDescarte(alterado)) onFechar();
+  };
   const aviso = avisoTrocaEmail(papel, revendedor, form.email);
 
   function alterar<K extends keyof RevendedorForm>(chave: K, valor: RevendedorForm[K]) {
@@ -190,9 +196,10 @@ function RevendedorDrawer({
       kicker={revendedor ? "EDITAR REVENDEDOR" : "NOVO REVENDEDOR"}
       titulo={revendedor ? revendedor.razao_social : "Cadastrar revendedor"}
       onFechar={onFechar}
+      confirmarFechar={() => confirmarDescarte(alterado)}
       rodape={
         <>
-          <button type="button" className="adm-btn" onClick={onFechar}>
+          <button type="button" className="adm-btn" onClick={fechar}>
             Cancelar
           </button>
           <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={ocupado}>
@@ -295,7 +302,11 @@ function RevendedorDrawer({
         </div>
         {revendedor && (
           <p className="adm-dica" style={{ margin: 0 }}>
-            O status do cadastro é alterado pelos botões Aprovar e Recusar na lista.
+            {!podeAprovarRevendedor(papel)
+              ? "Seu papel não altera o status."
+              : revendedor.status === "pendente"
+                ? "O status é alterado pelos botões Aprovar e Recusar na lista."
+                : "Status já definido."}
           </p>
         )}
         <div aria-live="polite">
