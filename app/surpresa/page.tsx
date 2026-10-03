@@ -43,7 +43,8 @@ export default async function SurpresaPage() {
       >
         <span
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
+            fontWeight: 600,
             fontSize: 26,
             letterSpacing: "0.16em",
             color: "#fff",
@@ -55,10 +56,10 @@ export default async function SurpresaPage() {
         <span style={{ fontSize: 34, marginBottom: 18 }}>🎁</span>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
-            fontStyle: "italic",
-            fontWeight: 500,
-            fontSize: 26,
+            fontFamily: "var(--font-sans)",
+            fontWeight: 700,
+            fontSize: "clamp(28px, 4vw, 40px)",
+            letterSpacing: "-0.01em",
             color: "#fff",
             marginBottom: 12,
             maxWidth: "20ch",

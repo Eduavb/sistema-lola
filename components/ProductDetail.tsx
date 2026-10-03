@@ -90,9 +90,10 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 500,
-            fontSize: 32,
+            fontFamily: "var(--font-sans)",
+            fontWeight: 700,
+            fontSize: "clamp(28px, 4vw, 40px)",
+            letterSpacing: "-0.01em",
             marginBottom: 12,
           }}
         >

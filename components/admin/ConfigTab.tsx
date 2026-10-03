@@ -116,9 +116,8 @@ export default function ConfigTab({
         >
           <h2
             style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontSize: 24,
+              fontSize: 20,
+              fontWeight: 600,
               margin: 0,
             }}
           >

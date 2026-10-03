@@ -20,7 +20,6 @@
   --accent-deep: #E8944A;
   --muted: #8C8079;
   --line: #EFE0DB;
-  --font-serif: "Fraunces", serif;
   --font-sans: "Hanken Grotesk", -apple-system, sans-serif;
 
   --pink: #FF8FAB;
@@ -80,12 +79,6 @@ h2,
 h3 {
   margin: 0;
   text-wrap: balance;
-}
-
-.serif {
-  font-family: var(--font-serif), serif;
-  font-style: italic;
-  font-weight: 500;
 }
 
 .sans-strong {
@@ -363,10 +356,9 @@ h3 {
 }
 
 .split-media .cap h3 {
-  font-family: var(--font-serif), serif;
-  font-style: italic;
+  font-family: var(--font-sans), sans-serif;
   font-size: 30px;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 6px;
 }
 
@@ -409,10 +401,9 @@ h3 {
 }
 
 .split-media.placeholder .ph-inner h3 {
-  font-family: var(--font-serif), serif;
-  font-style: italic;
+  font-family: var(--font-sans), sans-serif;
   font-size: 28px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 14px;
 }
 
@@ -472,10 +463,9 @@ h3 {
 }
 
 .tile .label h3 {
-  font-family: var(--font-serif), serif;
-  font-style: italic;
+  font-family: var(--font-sans), sans-serif;
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .tile.placeholder .label {
