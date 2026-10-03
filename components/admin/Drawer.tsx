@@ -11,6 +11,7 @@ export default function Drawer({
   kicker,
   titulo,
   onFechar,
+  confirmarFechar,
   rodape,
   largo,
   children,
@@ -19,16 +20,20 @@ export default function Drawer({
   kicker: string;
   titulo: string;
   onFechar: () => void;
+  confirmarFechar?: () => boolean;
   rodape?: ReactNode;
   largo?: boolean;
   children: ReactNode;
 }) {
   const painelRef = useRef<HTMLDivElement>(null);
-  const fecharRef = useRef(onFechar);
+  const tentarFechar = () => {
+    if (!confirmarFechar || confirmarFechar()) onFechar();
+  };
+  const fecharRef = useRef(tentarFechar);
   const tituloId = useId();
 
   useEffect(() => {
-    fecharRef.current = onFechar;
+    fecharRef.current = tentarFechar;
   });
 
   useEffect(() => {
@@ -87,7 +92,7 @@ export default function Drawer({
     <div
       className="adm-drawer-overlay"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onFechar();
+        if (e.target === e.currentTarget) tentarFechar();
       }}
     >
       <div
@@ -127,7 +132,7 @@ export default function Drawer({
           <button
             type="button"
             className="adm-btn"
-            onClick={onFechar}
+            onClick={tentarFechar}
             aria-label="Fechar"
             style={{ padding: 8, display: "flex", flex: "none" }}
           >
