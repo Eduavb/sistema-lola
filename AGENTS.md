@@ -1,11 +1,20 @@
 ## Sobre este projeto
 
-Loja LOLA, Fase 1 (varejo). A arquitetura tem como referência a loja anterior da
-operação (não versionada aqui; o zip fica em `reference/`, ignorado pelo lint).
-Acesso ao banco: catálogo
-por query direta (RLS libera `SELECT` anônimo), o resto por RPCs `SECURITY DEFINER`.
-Admin por senha única em cookie. Detalhes em `docs/superpowers/specs/` e
-`docs/superpowers/plans/`. Setup, deploy e QA em `README.md` e `docs/QA-fase1.md`.
+Loja LOLA: varejo, login por Supabase Auth e área de atacado. A arquitetura tem
+como referência a loja anterior da operação (não versionada aqui; o zip fica em
+`reference/`, ignorado pelo lint).
+Acesso aos dados: catálogo e textos públicos por query/RPC anônima (RLS libera
+`SELECT` anônimo no catálogo; `get_textos`, `get_banner_hero` e
+`get_promocoes_ativas` são RPCs públicas); todo o resto por RPCs
+`SECURITY DEFINER` que validam o papel do usuário logado via Supabase Auth
+(`assert_papel`). Papéis: `superadmin`, `admin`, `supervisor`, `revendedor`,
+`cliente` (matriz em `lib/roles.ts` e na spec §4.4). Não existe mais senha única
+de admin nem `p_secret` (exceto o webhook do Mercado Pago).
+Specs e planos: `docs/superpowers/specs/2026-10-02-loja-lola-release-home-login-atacado-design.md`
+e `docs/superpowers/plans/2026-10-02-loja-lola-release-home-login-atacado.md`
+(spec-mãe em `docs/superpowers/specs/2026-09-09-loja-lola-design.md`). Setup,
+lançamento e QA em `README.md` e `docs/QA.md`; SQL de lançamento gerado por
+`npm run release:sql`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
