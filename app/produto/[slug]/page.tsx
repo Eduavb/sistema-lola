@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { comDescontoEfetivo } from "@/lib/pricing";
+import { getPromocoesAtivas } from "@/lib/promocoes";
 import type { Product } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
-import Header from "@/components/Header";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooterServer from "@/components/SiteFooterServer";
 import ProductDetail from "@/components/ProductDetail";
-import { PaymentsStrip, SiteFooter } from "@/components/PaymentsFooter";
+import { PaymentsStrip } from "@/components/PaymentsFooter";
 
 export const revalidate = 0;
 
@@ -13,7 +16,7 @@ async function getProduct(slug: string): Promise<Product | null> {
   const { data, error } = await supabase()
     .from("products")
     .select(
-      "*, categoria:categorias(*), colors:product_colors(*, sizes:product_sizes(*))"
+      "*, categoria:categorias(id, nome, slug, ordem, grupo, desconto_atacado_percentual, ativo), colors:product_colors(*, sizes:product_sizes(*))"
     )
     .eq("slug", slug)
     .eq("ativo", true)
@@ -45,19 +48,20 @@ export default async function ProdutoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
-  if (!product) notFound();
+  const base = await getProduct(slug);
+  if (!base) notFound();
+  const [product] = comDescontoEfetivo([base], await getPromocoesAtivas());
 
   return (
     <>
-      <Header />
+      <SiteHeader />
       <section className="section">
         <div className="wrap">
           <ProductDetail product={product} />
         </div>
       </section>
       <PaymentsStrip />
-      <SiteFooter />
+      <SiteFooterServer />
     </>
   );
 }

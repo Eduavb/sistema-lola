@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { precoVarejo, precoAtacado, precisaNumeracao, type Product } from "@/lib/types";
+import { precisaNumeracao, type Product } from "@/lib/types";
+import { precoAtacado, precoVarejoEfetivo } from "@/lib/pricing";
 import { corDaCategoria } from "@/lib/brand.config";
 import SwingTag from "@/components/SwingTag";
 
@@ -19,14 +20,13 @@ export default function ProductCard({
   const img = activeColor?.imagens?.[0] ?? null;
   const temTamanhos = colors.some((c) => c.sizes.length > 0);
   const href = product.slug ? `/produto/${product.slug}` : "#";
-  const temDesconto =
-    modo === "varejo" &&
-    product.desconto_percentual != null &&
-    product.desconto_percentual > 0;
+  const varejo = precoVarejoEfetivo({
+    preco: product.preco,
+    desconto_efetivo: product.desconto_efetivo ?? product.desconto_percentual,
+  });
+  const temDesconto = modo === "varejo" && varejo.pct != null;
   const precoFinal =
-    modo === "atacado"
-      ? precoAtacado(product, product.categoria)
-      : precoVarejo(product);
+    modo === "atacado" ? precoAtacado(product, product.categoria) : varejo.final;
   const cor = corDaCategoria(product.categoria);
 
   return (

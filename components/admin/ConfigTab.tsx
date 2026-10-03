@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { saveConfig, changePassword } from "@/app/admin/actions";
+import { saveConfig } from "@/app/admin/actions";
 
 type Config = {
   taxa_entrega_local: number;
@@ -19,13 +19,13 @@ const inputStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: 11.5,
   letterSpacing: "0.04em",
-  color: "var(--muted)",
+  color: "var(--adm-text-secondary)",
   display: "block",
   marginBottom: 6,
 };
 const hintStyle: React.CSSProperties = {
   fontSize: 11,
-  color: "var(--muted)",
+  color: "var(--adm-text-secondary)",
   marginBottom: 14,
 };
 const cardStyle: React.CSSProperties = {
@@ -36,16 +36,18 @@ const cardStyle: React.CSSProperties = {
 };
 const okStyle: React.CSSProperties = {
   fontSize: 12.5,
-  color: "var(--accent)",
+  color: "var(--peach)",
   marginTop: 10,
 };
 
 export default function ConfigTab({
   config,
   onSaved,
+  onClose,
 }: {
   config: Config;
   onSaved: () => void;
+  onClose?: () => void;
 }) {
   const base = config ?? { taxa_entrega_local: 0, whatsapp: "", cidade_taxa: "" };
 
@@ -54,12 +56,6 @@ export default function ConfigTab({
   const [whatsapp, setWhatsapp] = useState(base.whatsapp ?? "");
   const [savingConfig, setSavingConfig] = useState(false);
   const [configOk, setConfigOk] = useState(false);
-
-  const [atual, setAtual] = useState("");
-  const [nova, setNova] = useState("");
-  const [confirma, setConfirma] = useState("");
-  const [trocando, setTrocando] = useState(false);
-  const [senhaOk, setSenhaOk] = useState(false);
 
   async function handleSaveConfig() {
     const taxaNum = parseFloat(taxa.replace(",", "."));
@@ -85,43 +81,64 @@ export default function ConfigTab({
     onSaved();
   }
 
-  async function handleChangePassword() {
-    if (nova.length < 12) {
-      alert("A nova senha precisa ter ao menos 12 caracteres.");
-      return;
-    }
-    if (nova !== confirma) {
-      alert("A confirmação não confere com a nova senha.");
-      return;
-    }
-    setSenhaOk(false);
-    setTrocando(true);
-    const { error } = await changePassword(atual, nova);
-    setTrocando(false);
-    if (error) {
-      alert(error);
-      return;
-    }
-    setAtual("");
-    setNova("");
-    setConfirma("");
-    setSenhaOk(true);
-  }
-
   return (
-    <div>
-      <h2
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(43,36,32,.35)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+        padding: 20,
+      }}
+    >
+      <div
         style={{
-          fontFamily: "var(--font-serif)",
-          fontStyle: "italic",
-          fontSize: 24,
-          marginBottom: 22,
+          background: "var(--surface)",
+          borderRadius: 16,
+          padding: 28,
+          width: "100%",
+          maxWidth: 560,
+          maxHeight: "90vh",
+          overflow: "auto",
+          boxSizing: "border-box",
         }}
       >
-        Configurações
-      </h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 18,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontSize: 24,
+              margin: 0,
+            }}
+          >
+            Configurações
+          </h2>
+          <button
+            onClick={() => onClose?.()}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: 18,
+              color: "var(--adm-text-secondary)",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
+        </div>
 
-      <div style={cardStyle}>
+        <div style={cardStyle}>
         <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>
           Entrega e contato
         </h3>
@@ -172,51 +189,6 @@ export default function ConfigTab({
         {configOk && <div style={okStyle}>Configurações salvas.</div>}
       </div>
 
-      <div style={cardStyle}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>
-          Trocar senha
-        </h3>
-
-        <label style={labelStyle}>Senha atual</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={atual}
-          onChange={(e) => setAtual(e.target.value)}
-          autoComplete="current-password"
-        />
-        <div style={{ marginBottom: 8 }} />
-
-        <label style={labelStyle}>Nova senha</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={nova}
-          onChange={(e) => setNova(e.target.value)}
-          autoComplete="new-password"
-        />
-        <div style={hintStyle}>ao menos 12 caracteres</div>
-
-        <label style={labelStyle}>Confirmar nova senha</label>
-        <input
-          type="password"
-          style={inputStyle}
-          value={confirma}
-          onChange={(e) => setConfirma(e.target.value)}
-          autoComplete="new-password"
-        />
-        <div style={{ marginBottom: 8 }} />
-
-        <button
-          className="btn"
-          onClick={handleChangePassword}
-          disabled={trocando}
-        >
-          {trocando ? "Trocando…" : "Trocar"}
-        </button>
-        {senhaOk && (
-          <div style={okStyle}>Senha alterada. Você continua logado.</div>
-        )}
       </div>
     </div>
   );

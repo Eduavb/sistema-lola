@@ -20,7 +20,7 @@ const MP_API = "https://api.mercadopago.com";
 // Helpers puros vivem num módulo sem `server-only` para serem testáveis em
 // ambiente node; reexportados aqui para que consumidores possam importar de
 // qualquer um dos dois arquivos.
-export { montarBackUrls, mapFormaPagamento, montarItensMP } from "./mercadopago-utils";
+export { montarBackUrls, mapFormaPagamento, montarItensMP, resolverOrigem } from "./mercadopago-utils";
 export type { ItemPreferencia } from "./mercadopago-utils";
 import { montarBackUrls, type ItemPreferencia } from "./mercadopago-utils";
 

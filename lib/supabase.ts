@@ -15,3 +15,16 @@ export function supabase() {
     auth: { persistSession: false },
   });
 }
+
+export function supabaseEfemero() {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
+// Cliente só para PostgREST/RPC: envia o JWT do usuário; `auth.*` fica indisponível.
+export function supabaseComToken(accessToken: string) {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    accessToken: async () => accessToken,
+  });
+}
