@@ -153,6 +153,21 @@ export function payloadParaForm(p: PromocaoPayload): PromocaoForm {
   };
 }
 
+export function estadoPromocao(p: Pick<Promocao, "cupom" | "ativa">): "Ativa" | "Guardada (cupom)" | "Inativa" {
+  if (!p.ativa) return "Inativa";
+  return p.cupom ? "Guardada (cupom)" : "Ativa";
+}
+
+export function contarAtivas(lista: Pick<Promocao, "cupom" | "ativa">[]): number {
+  return lista.filter((p) => estadoPromocao(p) === "Ativa").length;
+}
+
+export function notaDaPromocao(cupom: string): string {
+  return cupom.trim()
+    ? "Promoção com cupom fica guardada e não altera nenhum preço até o checkout aceitar cupom."
+    : NOTA_CUPOM;
+}
+
 export function traduzirErroPromocao(mensagem: string): string {
   return traduzirPorLista(mensagem, [
     [/cupom já usado/, "Esse cupom já está em uso em outra promoção ativa."],

@@ -27,13 +27,17 @@ export const REVENDEDOR_VAZIO: RevendedorForm = {
   uf: "",
 };
 
+function whatsappSemTruncar(v: string): string {
+  return v.replace(/\D/g, "").length > 11 ? v : mascararWhatsapp(v);
+}
+
 export function revendedorParaForm(r: Revendedor): RevendedorForm {
   return {
     razao_social: r.razao_social ?? "",
     cnpj: mascararCnpj(r.cnpj ?? ""),
     responsavel: r.responsavel ?? "",
     email: r.email ?? "",
-    whatsapp: mascararWhatsapp(r.whatsapp ?? ""),
+    whatsapp: whatsappSemTruncar(r.whatsapp ?? ""),
     cidade: r.cidade ?? "",
     uf: r.uf ?? "",
   };

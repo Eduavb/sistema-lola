@@ -94,6 +94,9 @@ describe("revendedorParaForm", () => {
       uf: "PR",
     });
   });
+  it("não trunca WhatsApp salvo com mais de 11 dígitos", () => {
+    expect(revendedorParaForm({ ...existente, whatsapp: "5541999998888" }).whatsapp).toBe("5541999998888");
+  });
   it("campos nulos viram vazio", () => {
     expect(revendedorParaForm({ ...existente, cnpj: null }).cnpj).toBe("");
   });

@@ -61,7 +61,7 @@ describe("rótulos", () => {
     expect(inicialDoUsuario(u({ nome: "  ", email: "ze@x.com" }))).toBe("Z");
   });
   it("chip por papel", () => {
-    expect(chipPapel("superadmin").bg).toBe(chipPapel("admin").bg);
+    expect(chipPapel("superadmin").bg).not.toBe(chipPapel("admin").bg);
     expect(chipPapel("supervisor").bg).not.toBe(chipPapel("cliente").bg);
     for (const p of PAPEIS) expect(chipPapel(p).texto).toBeTruthy();
   });

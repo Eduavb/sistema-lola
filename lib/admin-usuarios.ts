@@ -44,7 +44,7 @@ export function inicialDoUsuario(u: Pick<Usuario, "nome" | "email">): string {
 
 const CHIPS: Record<Papel, { bg: string; texto: string }> = {
   superadmin: { bg: "var(--adm-orange-bg)", texto: "var(--adm-orange-text)" },
-  admin: { bg: "var(--adm-orange-bg)", texto: "var(--adm-orange-text)" },
+  admin: { bg: "#FFF9F3", texto: "var(--adm-orange-text)" },
   supervisor: { bg: "var(--adm-purple-bg)", texto: "var(--adm-purple-text)" },
   cliente: { bg: "var(--adm-pink-bg)", texto: "var(--adm-pink-text)" },
   revendedor: { bg: "var(--adm-success-bg)", texto: "var(--adm-success-text)" },

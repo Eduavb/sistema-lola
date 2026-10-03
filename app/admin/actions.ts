@@ -16,6 +16,7 @@ import type {
 } from "@/lib/types";
 import { PAPEIS, podeGerirPapel, type Papel } from "@/lib/roles";
 import { validarImagemCategoria } from "@/lib/admin-categoria-imagem";
+import { MSG_DADOS_INVALIDOS, textosValidos, traduzirErroCategoria } from "@/lib/admin-erros";
 import { payloadParaForm, traduzirErroPromocao, validarPromocao, type Promocao, type PromocaoPayload } from "@/lib/admin-promocoes";
 import { motivoSemEdicao, traduzirErroUsuarios, validarConvite, type Convite, type Usuario } from "@/lib/admin-usuarios";
 import { traduzirErroRevendedor, validarRevendedor, type RevendedorPayload } from "@/lib/admin-revendedores";
@@ -255,6 +256,9 @@ export async function saveCategoria(payload: {
 }): Promise<{ error?: string; id?: string }> {
   const g = await autorizar("catalogo");
   if ("error" in g) return { error: g.error };
+  if (!textosValidos(payload, ["grupo", "nome", "slug"]) || (payload.id !== null && typeof payload.id !== "string")) {
+    return { error: MSG_DADOS_INVALIDOS };
+  }
   const erroImagem = validarImagemCategoria(payload.imagem);
   if (erroImagem) return { error: erroImagem };
 
@@ -279,7 +283,7 @@ export async function saveCategoria(payload: {
     p_desconto_atacado_percentual: payload.desconto_atacado_percentual,
     p_imagem: imagem,
   });
-  if (error) return { error: error.message };
+  if (error) return { error: traduzirErroCategoria(error.message) };
   return { id: data as string };
 }
 
@@ -287,13 +291,7 @@ export async function deleteCategoria(id: string): Promise<{ error?: string }> {
   const g = await autorizar("catalogo");
   if ("error" in g) return { error: g.error };
   const { error } = await g.sb.rpc("admin_delete_categoria", { p_id: id });
-  if (error) {
-    return {
-      error: error.message.includes("produtos")
-        ? "Essa categoria tem produtos — mova ou exclua os produtos antes."
-        : error.message,
-    };
-  }
+  if (error) return { error: traduzirErroCategoria(error.message) };
   return {};
 }
 
@@ -404,6 +402,12 @@ export async function saveRevendedor(
 ): Promise<{ error?: string; id?: string }> {
   const g = await autorizar("revendedores");
   if ("error" in g) return { error: g.error };
+  if (
+    !textosValidos(payload, ["razao_social", "cnpj", "responsavel", "email", "whatsapp", "cidade", "uf"]) ||
+    (payload.id !== null && typeof payload.id !== "string")
+  ) {
+    return { error: MSG_DADOS_INVALIDOS };
+  }
   const { id, ...campos } = payload;
   const { erros, payload: dados } = validarRevendedor(campos);
   if (!dados) return { error: Object.values(erros)[0] ?? "Dados do revendedor inválidos." };
@@ -436,6 +440,16 @@ export async function savePromocao(
 ): Promise<{ error?: string; id?: string }> {
   const g = await autorizar("promocoes");
   if ("error" in g) return { error: g.error };
+  const p = payload as Record<string, unknown>;
+  if (
+    !textosValidos(p, ["nome"]) ||
+    typeof p.desconto !== "number" ||
+    typeof p.ativa !== "boolean" ||
+    (p.id !== null && typeof p.id !== "string") ||
+    ["categoria_id", "inicio", "fim", "cupom"].some((c) => p[c] !== null && typeof p[c] !== "string")
+  ) {
+    return { error: MSG_DADOS_INVALIDOS };
+  }
   const { id, ...campos } = payload;
   const { erros, payload: dados } = validarPromocao(payloadParaForm(campos));
   if (!dados) return { error: Object.values(erros)[0] ?? "Dados da promoção inválidos." };
@@ -480,8 +494,8 @@ export async function saveUsuario(payload: {
 }): Promise<{ error?: string }> {
   const g = await autorizar("usuarios");
   if ("error" in g) return { error: g.error };
-  if (!PAPEIS.includes(payload.papel) || typeof payload.ativo !== "boolean") {
-    return { error: "Dados do usuário inválidos." };
+  if (typeof payload?.id !== "string" || !PAPEIS.includes(payload.papel) || typeof payload.ativo !== "boolean") {
+    return { error: MSG_DADOS_INVALIDOS };
   }
   const { data, error: erroLista } = await g.sb.rpc("admin_list_users");
   if (erroLista) return { error: ERRO_USUARIOS };
@@ -504,7 +518,8 @@ export async function saveUsuario(payload: {
 export async function inviteUsuario(payload: { email: string; papel: Papel }): Promise<{ error?: string }> {
   const g = await autorizar("usuarios");
   if ("error" in g) return { error: g.error };
-  const { erros, email } = validarConvite(g.perfil.papel, String(payload.email ?? ""), payload.papel);
+  if (typeof payload?.email !== "string" || !PAPEIS.includes(payload.papel)) return { error: MSG_DADOS_INVALIDOS };
+  const { erros, email } = validarConvite(g.perfil.papel, payload.email, payload.papel);
   const primeiro = erros.email ?? erros.papel;
   if (primeiro) return { error: primeiro };
   const { error } = await g.sb.rpc("admin_invite_user", { p_email: email, p_papel: payload.papel });
@@ -524,7 +539,14 @@ export async function fetchConvites(): Promise<{ convites?: Convite[]; error?: s
 export async function deleteConvite(email: string): Promise<{ error?: string }> {
   const g = await autorizar("usuarios");
   if ("error" in g) return { error: g.error };
-  const { error } = await g.sb.rpc("admin_delete_convite", { p_email: String(email ?? "") });
+  if (typeof email !== "string") return { error: MSG_DADOS_INVALIDOS };
+  const alvo = email.trim().toLowerCase();
+  const { data, error: erroLista } = await g.sb.rpc("admin_list_convites");
+  if (erroLista) return { error: "Não foi possível carregar os convites." };
+  const convite = ((data ?? []) as Convite[]).find((c) => c.email.toLowerCase() === alvo);
+  if (!convite) return { error: traduzirErroUsuarios("convite não encontrado") };
+  if (!podeGerirPapel(g.perfil.papel, convite.papel)) return { error: "Sem permissão." };
+  const { error } = await g.sb.rpc("admin_delete_convite", { p_email: alvo });
   if (error) return { error: traduzirErroUsuarios(error.message) };
   return {};
 }
