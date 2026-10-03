@@ -184,7 +184,12 @@ declare
 begin
   if new.email_confirmed_at is not null and v_email <> '' then
     perform pg_advisory_xact_lock(hashtext('lola:profiles:papel'));
-    select c.papel into v_convite from convites_papel c where c.email = v_email;
+    -- Convite de equipe só vale para conta criada DEPOIS dele (anti pré-cadastro:
+    -- conta anterior ao convite é promovida só por admin_set_user / bloco do dono).
+    select c.papel into v_convite from convites_papel c
+    where c.email = v_email
+      and (c.papel not in ('superadmin','admin','supervisor')
+           or new.created_at >= c.created_at);
   end if;
 
   v_inicial := coalesce(
