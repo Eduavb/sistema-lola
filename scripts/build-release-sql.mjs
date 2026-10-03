@@ -59,15 +59,21 @@ const cabecalho = `-- ==========================================================
 --      (Production e Preview) e redeploy depois de salvar.
 --   4. Edite o e-mail do dono no BLOCO FINAL deste arquivo (procure por
 --      SEU_EMAIL_AQUI@exemplo.com). O bloco aborta se o e-mail não for trocado.
+--   5. BLOQUEANTE (anti sequestro de conta): abra Authentication > Users e, se
+--      existir conta NÃO confirmada com o e-mail do dono (ou de qualquer
+--      funcionário a convidar), APAGUE-A antes de rodar este SQL e antes de
+--      cada convite de equipe. Para o dono use somente 'Add user' com
+--      'Auto Confirm User'. (Convite de equipe só vale para conta criada
+--      DEPOIS dele; conta anterior nunca é promovida pelo trigger.)
 --
 -- ORDEM DE EXECUÇÃO
 --   1. Rode ESTE arquivo inteiro no SQL Editor do projeto Supabase da LOLA
 --      (uma vez, antes do merge).
 --   2. Só então mergeie o PR (o deploy novo já espera este esquema).
 --   3. Crie a conta do dono:
---        - Supabase > Authentication > Users > Add user (e-mail do dono, senha,
---          marcar "Auto Confirm User"), OU
---        - cadastre-se em /entrar no site já publicado e confirme o e-mail.
+--        - SOMENTE por Supabase > Authentication > Users > Add user (e-mail do
+--          dono, senha, marcar "Auto Confirm User"). Não use o cadastro público
+--          em /entrar para o dono.
 --      Se a conta for criada DEPOIS deste SQL, o convite gravado no bloco final
 --      a torna superadmin automaticamente ao confirmar o e-mail. Se a conta já
 --      existia e estava confirmada, o bloco final já a promoveu.
@@ -75,6 +81,9 @@ const cabecalho = `-- ==========================================================
 --   5. Passe docs/QA.md.
 --
 -- AVISOS
+--   * JANELA: entre rodar este SQL e o deploy publicar, o admin antigo e o
+--     checkout atual falham (assinaturas antigas removidas). Rode o SQL e
+--     mergeie em seguida, em horário de pouco movimento.
 --   * NUNCA reaplique 0002 nem 0007 depois do 0008: reabriria p_customer_id,
 --     criaria sobrecarga ambígua de checkout_iniciar_pedido (PGRST203) e
 --     perderia a limpeza do carrinho de atacado em _settle_order.

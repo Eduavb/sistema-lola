@@ -24,21 +24,30 @@ as migrações 0004 a 0008; as 0001 a 0003 já estão no banco de produção.
    da seção "Setup local": defina `NEXT_PUBLIC_SITE_URL=https://<seu-domínio>`
    (obrigatória no lançamento: monta os links de confirmação de e-mail e de
    redefinição de senha). Faça redeploy depois de salvar.
-3. **Criar a conta do dono**, de uma das formas:
-   - Supabase > Authentication > Users > **Add user**, com o e-mail do dono, uma
-     senha forte e "Auto Confirm User" marcado; ou
-   - cadastrar-se em `/entrar` no site já publicado e confirmar o e-mail.
+3. **Criar a conta do dono, somente pelo painel**: Supabase > Authentication >
+   Users > **Add user**, com o e-mail do dono, uma senha forte e "Auto Confirm
+   User" marcado (não use o cadastro público de `/entrar` para o dono).
+
+   **BLOQUEANTE (anti sequestro de conta):** antes de rodar o SQL e antes de
+   **cada convite de equipe**, abra Authentication > Users e, se existir uma
+   conta **não confirmada** com o e-mail do dono ou do funcionário, **apague-a**.
+   Qualquer pessoa pode pré-cadastrar um e-mail alheio com a própria senha; o
+   trigger só aplica convite de equipe a conta criada **depois** do convite, mas
+   a conta antiga não confirmada deve sumir para o dono/funcionário recriá-la.
 
    Pode ser antes ou depois do passo 4: o bloco final do SQL cobre os dois casos
    (promove a conta existente e confirmada, ou deixa um convite de uso único que
-   a torna `superadmin` ao confirmar o e-mail).
+   a torna `superadmin` quando a conta for criada com Auto Confirm).
 4. **Rodar o SQL**: abra `supabase/release-unico.sql`, troque
    `SEU_EMAIL_AQUI@exemplo.com` pelo e-mail do dono (só na linha `v_email` do
    bloco final) e cole o arquivo inteiro no SQL Editor do projeto LOLA. Rode uma
    vez. O bloco aborta se o e-mail não for trocado. **Nunca reaplique** `0002` ou
    `0007` depois do `0008`. O arquivo é gerado: se alterar uma migração, rode
    `npm run release:sql`.
-5. **Mergear o PR** (o deploy novo já espera o esquema do passo 4).
+5. **Mergear o PR** (o deploy novo já espera o esquema do passo 4). **Janela de
+   indisponibilidade:** entre rodar o SQL e o deploy publicar, o admin antigo e
+   o checkout atual falham (as assinaturas antigas foram removidas). Rode o SQL
+   e mergeie em seguida, em horário de pouco movimento.
 6. **Rodar `supabase/smoke.sql`** (somente leitura) no SQL Editor. Todas as linhas
    devem vir com `ok = true`; "superadmin ativo" só pode estar `false` se a conta
    do dono ainda não foi criada/confirmada.
@@ -78,6 +87,9 @@ Regras: só `superadmin` cria, edita ou desativa `superadmin`; ninguém rebaixa 
 desativa a si mesmo; sempre existe ao menos um `superadmin` ativo. Convites de
 papel são de uso único e só valem com e-mail confirmado. `revendedor` acessa o
 atacado somente com cadastro **aprovado**; `cliente` compra e vê os próprios pedidos.
+
+Para **revogar o atacado** de alguém, recuse o cadastro em Revendedores (mudar o
+papel em Usuários não corta o atacado).
 
 ## Stack
 

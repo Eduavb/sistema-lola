@@ -67,7 +67,8 @@ confirmar em produção, mas não são o foco da passada manual:
 
 - [ ] **Supervisor**: vê Visão geral só com contagens e estoque baixo (sem valores
       de receita), Pedidos, Vendas sem totais financeiros e Revendedores
-      (cadastrar/editar, sem aprovar/recusar). **Sem Financeiro**, sem Produtos,
+      (cadastrar/editar, sem aprovar/recusar). Tem a tela **Vendas** (somente
+      leitura, **sem valores**) no menu; **sem Financeiro**, sem Produtos,
       Promoções, Banner, Textos, Usuários e Config; o RPC também recusa se
       chamado direto.
 - [ ] **Admin**: tudo de cadastro e conteúdo (inclui Financeiro, Usuários não
@@ -78,6 +79,13 @@ confirmar em produção, mas não são o foco da passada manual:
 - [ ] Convite de papel: "+ Adicionar usuário" grava convite de **uso único**; ao
       a pessoa confirmar o e-mail o papel é aplicado e o convite some da lista.
       Cancelar convite só vale para convites pendentes.
+- [ ] **Conta não confirmada com e-mail convidado não vira equipe**: cadastre
+      (sem confirmar) um e-mail, depois convide-o como admin/supervisor e confirme
+      o e-mail; o papel continua `cliente` e o convite segue pendente. A promoção
+      só acontece por "Usuários" (superadmin/admin) ou apagando a conta e
+      recriando-a depois do convite.
+- [ ] Revogar atacado: recusar o cadastro em Revendedores corta o acesso; mudar o
+      papel em Usuários não corta.
 
 ## Admin: conteúdo
 

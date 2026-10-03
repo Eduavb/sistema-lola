@@ -147,6 +147,48 @@ select nome, ok, detalhe from (
 
   union all
 
+  select 82, 'conteúdo público executável por anon (get_textos, get_banner_hero, get_promocoes_ativas)',
+         to_regprocedure('public.get_textos()') is not null
+           and to_regprocedure('public.get_banner_hero()') is not null
+           and to_regprocedure('public.get_promocoes_ativas()') is not null
+           and has_function_privilege('anon', to_regprocedure('public.get_textos()'), 'EXECUTE')
+           and has_function_privilege('anon', to_regprocedure('public.get_banner_hero()'), 'EXECUTE')
+           and has_function_privilege('anon', to_regprocedure('public.get_promocoes_ativas()'), 'EXECUTE'),
+         'a Home pública depende destas três'
+
+  union all
+
+  select 83, 'assert_papel(text[]) sem EXECUTE para anon/authenticated',
+         to_regprocedure('public.assert_papel(text[])') is not null
+           and not has_function_privilege('anon', to_regprocedure('public.assert_papel(text[])'), 'EXECUTE')
+           and not has_function_privilege('authenticated', to_regprocedure('public.assert_papel(text[])'), 'EXECUTE'),
+         'deve existir e estar fechada'
+
+  union all
+
+  select 84, '_desconto_efetivo(products) sem EXECUTE para anon/authenticated',
+         to_regprocedure('public._desconto_efetivo(products)') is not null
+           and not has_function_privilege('anon', to_regprocedure('public._desconto_efetivo(products)'), 'EXECUTE')
+           and not has_function_privilege('authenticated', to_regprocedure('public._desconto_efetivo(products)'), 'EXECUTE'),
+         'deve existir e estar fechada'
+
+  union all
+
+  select 85, '_promocoes_vigentes() sem EXECUTE para anon/authenticated',
+         to_regprocedure('public._promocoes_vigentes()') is not null
+           and not has_function_privilege('anon', to_regprocedure('public._promocoes_vigentes()'), 'EXECUTE')
+           and not has_function_privilege('authenticated', to_regprocedure('public._promocoes_vigentes()'), 'EXECUTE'),
+         'deve existir e estar fechada'
+
+  union all
+
+  select 86, 'mp_register_order_payment(text,uuid,text,text,numeric) executável por anon (webhook)',
+         to_regprocedure('public.mp_register_order_payment(text,uuid,text,text,numeric)') is not null
+           and has_function_privilege('anon', to_regprocedure('public.mp_register_order_payment(text,uuid,text,text,numeric)'), 'EXECUTE'),
+         'o webhook usa a chave anon; a proteção é o p_secret'
+
+  union all
+
   -- ---------- trigger de auth ----------
   select 90, 'trigger lola_on_auth_user em auth.users',
          exists (select 1 from pg_trigger t
