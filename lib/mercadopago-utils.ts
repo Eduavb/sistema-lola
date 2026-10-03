@@ -34,6 +34,33 @@ export function montarItensMP(
   return itens;
 }
 
+function origemHttp(valor: string | null | undefined): string | null {
+  if (!valor) return null;
+  try {
+    const u = new URL(valor.trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return u.origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Origem usada em notification_url e back_urls: NEXT_PUBLIC_SITE_URL quando
+ * válida (http/https); senão o host da requisição (desenvolvimento).
+ */
+export function resolverOrigem(
+  siteUrl: string | null | undefined,
+  host: string | null,
+  proto: string | null
+): string {
+  const doSite = origemHttp(siteUrl);
+  if (doSite) return doSite;
+  if (!host) return "";
+  const esquema = proto === "http" ? "http" : "https";
+  return origemHttp(`${esquema}://${host}`) ?? "";
+}
+
 export function montarBackUrls(origin: string, successPath: string) {
   return {
     success: `${origin}${successPath}?pagamento=sucesso`,

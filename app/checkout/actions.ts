@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { authedSupabase } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { criarPreferencia, montarItensMP } from "@/lib/mercadopago";
+import { criarPreferencia, montarItensMP, resolverOrigem } from "@/lib/mercadopago";
 import {
   deveTentarComoConvidado,
   mensagemErroCheckout,
@@ -102,7 +102,7 @@ async function iniciarPedido(
   const h = await headers();
   const host = h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
-  const origin = host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const origin = resolverOrigem(process.env.NEXT_PUBLIC_SITE_URL, host, proto);
 
   // Taxa de entrega entra como linha própria quando > 0 ("entrega_fora" = 0,
   // frete combinado pelo WhatsApp).

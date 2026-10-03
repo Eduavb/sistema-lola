@@ -116,8 +116,8 @@ export default function VisaoGeralTab({
           </>
         ) : (
           <>
-            <KpiCard label="VENDAS TOTAIS" value={brl(totalGeral)} trend="↑ 8,2% no período" />
-            <KpiCard label="VENDAS DO MÊS" value={brl(totalMes)} trend="↑ 12% vs. mês anterior" />
+            <KpiCard label="VENDAS TOTAIS" value={brl(totalGeral)} />
+            <KpiCard label="VENDAS DO MÊS" value={brl(totalMes)} />
           </>
         )}
         <KpiCard label="Nº DE VENDAS" value={String(salesFiltradas.length)} trend={`Recorte: ${FILTROS.find((f) => f.key === filtro)!.label}`} trendColor="var(--adm-text-secondary)" />
@@ -223,12 +223,12 @@ export default function VisaoGeralTab({
   );
 }
 
-function KpiCard({ label, value, trend, trendColor = "var(--adm-trend-positive)" }: { label: string; value: string; trend: string; trendColor?: string }) {
+function KpiCard({ label, value, trend, trendColor = "var(--adm-trend-positive)" }: { label: string; value: string; trend?: string; trendColor?: string }) {
   return (
     <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 20 }}>
       <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--adm-text-secondary)", letterSpacing: "0.04em" }}>{label}</div>
       <div style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, marginTop: 8 }}>{value}</div>
-      <div style={{ fontSize: 12, color: trendColor, marginTop: 6 }}>{trend}</div>
+      {trend && <div style={{ fontSize: 12, color: trendColor, marginTop: 6 }}>{trend}</div>}
     </div>
   );
 }
