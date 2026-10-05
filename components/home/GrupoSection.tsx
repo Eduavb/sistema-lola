@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 
-function EmptyGrid({ label }: { label: string }) {
+function EmptyGrid() {
   return (
     <div
       style={{
@@ -12,11 +12,7 @@ function EmptyGrid({ label }: { label: string }) {
         fontSize: 13,
       }}
     >
-      Nenhum {label} cadastrado ainda. Cadastre no{" "}
-      <a href="/admin" style={{ color: "var(--ink-soft)", textDecoration: "underline" }}>
-        painel
-      </a>{" "}
-      pra essa vitrine ganhar vida.
+      Novidades chegando em breve.
     </div>
   );
 }
@@ -57,13 +53,11 @@ export default function GrupoSection({
   titulo,
   destaque,
   produtos,
-  emptyLabel,
 }: {
   id: string;
   titulo: string;
   destaque: string;
   produtos: Product[];
-  emptyLabel: string;
 }) {
   const grupos = agruparPorCategoria(produtos);
   const mostrarSubtitulos = grupos.length > 1 || grupos[0]?.key !== "sem-categoria";
@@ -76,7 +70,7 @@ export default function GrupoSection({
           <h2 className="section-title-new">{titulo}</h2>
         </div>
         {grupos.length === 0 ? (
-          <EmptyGrid label={emptyLabel} />
+          <EmptyGrid />
         ) : (
           grupos.map((g) => (
             <div

@@ -121,7 +121,8 @@ export default function SurpresaOffer({ product }: { product: Product }) {
           <Link
             href="/"
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
+              fontWeight: 600,
               fontSize: 20,
               letterSpacing: "0.14em",
               color: "var(--ink-soft)",
@@ -187,9 +188,10 @@ export default function SurpresaOffer({ product }: { product: Product }) {
               )}
               <h1
                 style={{
-                  fontFamily: "var(--font-serif)",
-                  fontWeight: 500,
-                  fontSize: 34,
+                  fontFamily: "var(--font-sans)",
+                  fontWeight: 700,
+                  fontSize: "clamp(28px, 4vw, 40px)",
+                  letterSpacing: "-0.01em",
                   marginBottom: 14,
                 }}
               >

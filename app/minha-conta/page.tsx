@@ -34,10 +34,10 @@ export default function MinhaContaPage() {
         <div className="wrap" style={{ maxWidth: 640 }}>
           <h1
             style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
-              fontWeight: 500,
-              fontSize: 28,
+              fontFamily: "var(--font-sans)",
+              fontWeight: 700,
+              fontSize: "clamp(28px, 4vw, 40px)",
+              letterSpacing: "-0.01em",
               marginBottom: 10,
             }}
           >

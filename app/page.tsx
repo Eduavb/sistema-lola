@@ -132,7 +132,6 @@ export default async function Home() {
         titulo="Calçados"
         destaque={BRAND.nome}
         produtos={calcados}
-        emptyLabel="calçado"
       />
 
       <GrupoSection
@@ -140,7 +139,6 @@ export default async function Home() {
         titulo="Acessórios"
         destaque={BRAND.nome}
         produtos={acessorios}
-        emptyLabel="acessório"
       />
 
       <PaymentsStrip />
