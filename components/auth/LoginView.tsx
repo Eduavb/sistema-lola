@@ -11,6 +11,7 @@ import {
   renovarSessaoAction,
 } from "@/app/entrar/actions";
 import { COPY, CAMPOS, aplicarMascara, diagnosticarFormulario, type Modo } from "@/components/auth/form";
+import ChecklistRevendedor from "@/components/auth/ChecklistRevendedor";
 import "@/components/auth/auth.css";
 
 type Props = {
@@ -191,7 +192,14 @@ function Formulario({ modo, next, valores, setValores, aoSubmeter, aoMudarEnvio,
 
   return (
     <>
-      <div aria-live="polite">{enviado && <div className="auth-success">{estado.sent}</div>}</div>
+      <div aria-live="polite">
+        {enviado &&
+          (modo === "revendedor" ? (
+            <ChecklistRevendedor email={valores.email ?? ""} />
+          ) : (
+            <div className="auth-success">{estado.sent}</div>
+          ))}
+      </div>
 
       {!escondeForm && (
         <form className="auth-form" action={formAction} onSubmit={aoEnviar} noValidate>
