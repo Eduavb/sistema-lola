@@ -9,17 +9,17 @@ describe("itensMenuConta", () => {
     expect(r.map((i) => i.rotulo)).toEqual(["Minha conta", "Sair"]);
     expect(r[1].tipo).toBe("sair");
   });
-  it("equipe ganha Painel", () => {
+  it("equipe vê só Painel e Sair", () => {
     for (const papel of ["superadmin", "admin", "supervisor"] as const) {
       const r = itensMenuConta({ nome: "X", papel });
-      expect(r).toContainEqual({ tipo: "link", rotulo: "Painel", href: "/admin" });
-      expect(r.map((i) => i.rotulo)).not.toContain("Painel de atacado");
+      expect(r.map((i) => i.rotulo)).toEqual(["Painel", "Sair"]);
+      expect(r[0]).toEqual({ tipo: "link", rotulo: "Painel", href: "/admin" });
     }
   });
-  it("revendedor ganha Painel de atacado", () => {
+  it("revendedor vê só Painel de atacado e Sair", () => {
     const r = itensMenuConta({ nome: "R", papel: "revendedor" });
-    expect(r).toContainEqual({ tipo: "link", rotulo: "Painel de atacado", href: "/atacado" });
-    expect(r.map((i) => i.rotulo)).not.toContain("Painel");
+    expect(r.map((i) => i.rotulo)).toEqual(["Painel de atacado", "Sair"]);
+    expect(r[0]).toEqual({ tipo: "link", rotulo: "Painel de atacado", href: "/atacado" });
   });
 });
 

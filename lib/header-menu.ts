@@ -7,13 +7,13 @@ export type ItemMenuConta =
   | { tipo: "sair"; rotulo: string };
 
 export function itensMenuConta(perfil: PerfilNav): ItemMenuConta[] {
-  const itens: ItemMenuConta[] = [{ tipo: "link", rotulo: "Minha conta", href: "/minha-conta" }];
-  if (ehEquipe(perfil.papel)) itens.push({ tipo: "link", rotulo: "Painel", href: "/admin" });
-  if (perfil.papel === "revendedor") {
-    itens.push({ tipo: "link", rotulo: "Painel de atacado", href: "/atacado" });
-  }
-  itens.push({ tipo: "sair", rotulo: "Sair" });
-  return itens;
+  // Cada perfil vê só o seu destino: equipe no painel, revendedor no atacado, cliente em Minha conta.
+  const destino: ItemMenuConta = ehEquipe(perfil.papel)
+    ? { tipo: "link", rotulo: "Painel", href: "/admin" }
+    : perfil.papel === "revendedor"
+      ? { tipo: "link", rotulo: "Painel de atacado", href: "/atacado" }
+      : { tipo: "link", rotulo: "Minha conta", href: "/minha-conta" };
+  return [destino, { tipo: "sair", rotulo: "Sair" }];
 }
 
 export function linksCategorias(categorias: CategoriaNav[]): { href: string; rotulo: string }[] {
