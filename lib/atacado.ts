@@ -51,7 +51,7 @@ export function progressoSkus(skus: number) {
 export function textoFaltam(skus: number): string | null {
   const faltam = MIN_SKUS_ATACADO - inteiroNaoNegativo(skus);
   if (faltam <= 0) return null;
-  return faltam === 1 ? "Falta 1 SKU para finalizar" : `Faltam ${faltam} SKUs para finalizar`;
+  return faltam === 1 ? "Falta 1 produto para finalizar" : `Faltam ${faltam} produtos para finalizar`;
 }
 
 export function alertaLinha(i: Pick<ItemCarrinho, "disponivel" | "estoque" | "quantidade">): string | null {

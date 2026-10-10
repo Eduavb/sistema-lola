@@ -11,6 +11,7 @@ import {
   type PedidoAtacado,
 } from "@/lib/atacado";
 import type { Product } from "@/lib/types";
+import { DEMO, PRODUTOS_DEMO } from "@/lib/demo-catalogo";
 
 export type CadastroRevendedor = {
   status: "pendente" | "aprovado" | "recusado";
@@ -60,6 +61,7 @@ export async function cadastroAprovado(db: SupabaseClient): Promise<boolean> {
 }
 
 export async function carregarCarrinho(db: SupabaseClient): Promise<CarrinhoAtacado | null> {
+  if (DEMO) return { itens: [], sku_distintos: 0, total: 0 };
   const { data, error } = await db.rpc("atacado_cart_get");
   if (error) {
     registrarErro("atacado_cart_get", error);
@@ -69,6 +71,7 @@ export async function carregarCarrinho(db: SupabaseClient): Promise<CarrinhoAtac
 }
 
 export async function carregarPedidos(db: SupabaseClient): Promise<PedidoAtacado[] | null> {
+  if (DEMO) return [];
   const { data, error } = await db.rpc("atacado_my_orders");
   if (error) {
     registrarErro("atacado_my_orders", error);
@@ -105,6 +108,21 @@ function cores(p: LinhaProduto): CorCatalogo[] {
 export async function carregarCatalogo(
   db: SupabaseClient
 ): Promise<ProdutoCatalogo[] | null> {
+  if (DEMO) {
+    return PRODUTOS_DEMO.map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      categoria: p.categoria?.nome ?? "",
+      preco: precoAtacado(p, p.categoria),
+      cores: p.colors.map((c) => ({
+        id: c.id,
+        nome: c.nome,
+        hex: c.hex,
+        imagem: c.imagens[0] ?? null,
+        tamanhos: c.sizes.map((s) => ({ id: s.id, tamanho: s.tamanho, estoque: s.estoque })),
+      })),
+    }));
+  }
   const { data, error } = await db
     .from("products")
     .select(SELECT_CATALOGO)
@@ -132,6 +150,14 @@ const JANELA_NOVIDADES = 12;
 export async function carregarNovidades(
   db: SupabaseClient
 ): Promise<Novidade[] | null> {
+  if (DEMO) {
+    return PRODUTOS_DEMO.slice(0, 4).map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      preco: precoAtacado(p, p.categoria),
+      foto: p.colors[0]?.imagens[0] ?? null,
+    }));
+  }
   const { data, error } = await db
     .from("products")
     .select(SELECT_CATALOGO)
@@ -165,6 +191,7 @@ export async function carregarNovidades(
 }
 
 export async function carregarDescontoMaximo(db: SupabaseClient): Promise<number | null> {
+  if (DEMO) return 30;
   const { data, error } = await db
     .from("categorias")
     .select("desconto_atacado_percentual")

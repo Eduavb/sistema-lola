@@ -99,7 +99,7 @@ export default function CheckoutAtacado({
                 margin: 0,
               }}
             >
-              {avaliacao.skus} de {MIN_SKUS_ATACADO} SKUs distintos
+              {avaliacao.skus} de {MIN_SKUS_ATACADO} produtos distintos
             </p>
             {itens.map((i) => {
               const problema = problemaPorId.get(i.id);

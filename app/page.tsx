@@ -6,10 +6,13 @@ import { totalEstoque, type Product } from "@/lib/types";
 import { BANNER_PADRAO, normalizarBanner, paraCartaoLancamento, selecionarLancamentos } from "@/lib/home";
 import { hashCurtoImagem, parseDataUriImagem } from "@/lib/imagem";
 import { BRAND } from "@/lib/brand.config";
+import { CATEGORIAS_DEMO, DEMO, PRODUTOS_DEMO } from "@/lib/demo-catalogo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooterServer from "@/components/SiteFooterServer";
 import { PaymentsStrip } from "@/components/PaymentsFooter";
 import Hero from "@/components/home/Hero";
+import HeroCarrossel from "@/components/home/HeroCarrossel";
+import HeroRevendedora from "@/components/home/HeroRevendedora";
 import Categorias, { type CategoriaVitrine } from "@/components/home/Categorias";
 import Lancamentos from "@/components/home/Lancamentos";
 import BannerRevendedora from "@/components/home/BannerRevendedora";
@@ -18,6 +21,7 @@ import GrupoSection from "@/components/home/GrupoSection";
 export const revalidate = 0;
 
 async function getProducts(): Promise<Product[]> {
+  if (DEMO) return PRODUTOS_DEMO;
   const { data, error } = await supabase()
     .from("products")
     .select(
@@ -53,6 +57,15 @@ type CategoriaLinha = CategoriaVitrine & { ordem: number };
 // O base64 da imagem fica só no servidor: a página guarda apenas a URL da rota
 // com cache (/api/categoria-img) e um hash curto que invalida quando a imagem muda.
 async function getCategoriasAtivas(): Promise<CategoriaLinha[]> {
+  if (DEMO) {
+    return CATEGORIAS_DEMO.map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      slug: c.slug,
+      ordem: c.ordem,
+      imagem: PRODUTOS_DEMO.find((p) => p.categoria_id === c.id)?.colors[0]?.imagens[0] ?? null,
+    }));
+  }
   const { data, error } = await supabase()
     .from("categorias")
     .select("id, nome, slug, ordem, imagem")
@@ -105,7 +118,12 @@ export default async function Home() {
     <>
       <SiteHeader />
 
-      <Hero banner={banner} imagemSrc={imagemSrc} />
+      <HeroCarrossel
+        slides={[
+          <Hero key="loja" banner={banner} imagemSrc={imagemSrc} />,
+          <HeroRevendedora key="revendedora" textos={textos} />,
+        ]}
+      />
 
       <Categorias
         categorias={categorias}

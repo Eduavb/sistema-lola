@@ -37,7 +37,7 @@ export default async function PainelAtacadoPage() {
       <section className="atc-cartao atc-progresso" aria-label="Pedido mínimo">
         <div className="atc-progresso-texto">
           <h2 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>
-            Pedido mínimo: {progresso.minimo} SKUs distintos
+            Pedido mínimo: {progresso.minimo} produtos distintos
           </h2>
           <p className="atc-suave" style={{ fontSize: 13, margin: 0 }}>
             Adicione itens ao carrinho até completar o mínimo para finalizar o pedido.
@@ -45,7 +45,7 @@ export default async function PainelAtacadoPage() {
           <div
             className="atc-barra"
             role="progressbar"
-            aria-label="SKUs distintos no carrinho"
+            aria-label="produtos distintos no carrinho"
             aria-valuemin={0}
             aria-valuemax={progresso.minimo}
             aria-valuenow={Math.min(progresso.atual, progresso.minimo)}
@@ -55,7 +55,7 @@ export default async function PainelAtacadoPage() {
         </div>
         <div className="atc-progresso-valor">
           <div className="atc-progresso-num">
-            {progresso.atual} de {progresso.minimo} SKUs
+            {progresso.atual} de {progresso.minimo} produtos
           </div>
           <Link href="/atacado/carrinho" className="atc-btn" style={{ marginTop: 8 }}>
             Ver carrinho
@@ -108,7 +108,7 @@ export default async function PainelAtacadoPage() {
                     {pedidoIdCurto(p.id)}
                   </div>
                   <div className="atc-suave" style={{ fontSize: 12 }}>
-                    {p.skus} SKUs
+                    {p.skus} produtos
                   </div>
                   <div className="atc-mono" style={{ fontSize: 13 }}>
                     {formatarReais(p.valor_total)}

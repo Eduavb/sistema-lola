@@ -5,6 +5,7 @@ import { comDescontoEfetivo } from "@/lib/pricing";
 import { getPromocoesAtivas } from "@/lib/promocoes";
 import type { Product } from "@/lib/types";
 import { BRAND } from "@/lib/brand.config";
+import { DEMO, PRODUTOS_DEMO } from "@/lib/demo-catalogo";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooterServer from "@/components/SiteFooterServer";
 import ProductDetail from "@/components/ProductDetail";
@@ -13,6 +14,7 @@ import { PaymentsStrip } from "@/components/PaymentsFooter";
 export const revalidate = 0;
 
 async function getProduct(slug: string): Promise<Product | null> {
+  if (DEMO) return PRODUTOS_DEMO.find((p) => p.slug === slug) ?? null;
   const { data, error } = await supabase()
     .from("products")
     .select(

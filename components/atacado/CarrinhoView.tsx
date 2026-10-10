@@ -41,7 +41,7 @@ export default function CarrinhoView({
         <ShoppingBag size={28} aria-hidden="true" style={{ color: "var(--adm-text-secondary)" }} />
         <p style={{ fontSize: 15, fontWeight: 600, margin: "10px 0 4px" }}>Seu carrinho está vazio</p>
         <p className="atc-suave" style={{ fontSize: 13, margin: "0 0 16px" }}>
-          Escolha produtos no catálogo até completar {progresso.minimo} SKUs distintos.
+          Escolha produtos no catálogo até completar {progresso.minimo} produtos distintos.
         </p>
         <Link href="/atacado/catalogo" className="atc-btn">
           Ver catálogo
@@ -120,13 +120,13 @@ export default function CarrinhoView({
         <h2>Resumo do pedido</h2>
         <div>
           <div className="atc-suave" style={{ fontSize: 13 }}>
-            SKUs distintos no carrinho
+            produtos distintos no carrinho
           </div>
           <div
             className="atc-barra"
             style={{ marginTop: 6 }}
             role="progressbar"
-            aria-label="SKUs distintos no carrinho"
+            aria-label="produtos distintos no carrinho"
             aria-valuemin={0}
             aria-valuemax={progresso.minimo}
             aria-valuenow={Math.min(progresso.atual, progresso.minimo)}
@@ -134,7 +134,7 @@ export default function CarrinhoView({
             <span style={{ width: `${progresso.pct}%` }} />
           </div>
           <div className="atc-mono" style={{ fontSize: 13, marginTop: 6 }}>
-            {progresso.atual} de {progresso.minimo} SKUs
+            {progresso.atual} de {progresso.minimo} produtos
           </div>
         </div>
         <div className="atc-resumo-linha" style={{ paddingTop: 8, borderTop: "1px solid var(--line)" }}>

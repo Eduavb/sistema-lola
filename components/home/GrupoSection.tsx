@@ -83,6 +83,7 @@ export default function GrupoSection({
                 <h3
                   style={{
                     fontFamily: "var(--font-display), sans-serif",
+                    letterSpacing: "0.06em",
                     fontSize: 20,
                     color: "var(--ink-soft)",
                     marginBottom: 20,

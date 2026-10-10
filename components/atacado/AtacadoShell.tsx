@@ -45,7 +45,7 @@ const ITENS: Item[] = [
     label: "Carrinho",
     Icon: ShoppingCart,
     titulo: "Carrinho",
-    subtitulo: "Mínimo de 12 SKUs distintos por pedido",
+    subtitulo: "Mínimo de 12 produtos distintos por pedido",
     contador: true,
   },
   {
@@ -115,7 +115,7 @@ export default function AtacadoShell({
           <Icon size={18} aria-hidden="true" style={{ flex: "none" }} />
           <span>{label}</span>
           {contador && (
-            <span className="atc-nav-badge" aria-label={`${progresso.atual} de ${progresso.minimo} SKUs`}>
+            <span className="atc-nav-badge" aria-label={`${progresso.atual} de ${progresso.minimo} produtos`}>
               {progresso.label}
             </span>
           )}
@@ -156,7 +156,7 @@ export default function AtacadoShell({
             <Logo />
           </Link>
           <div className="atc-topo-acoes">
-            <Link href="/atacado/carrinho" className="atc-pill" aria-label={`Carrinho: ${progresso.atual} de ${progresso.minimo} SKUs`}>
+            <Link href="/atacado/carrinho" className="atc-pill" aria-label={`Carrinho: ${progresso.atual} de ${progresso.minimo} produtos`}>
               <ShoppingCart size={16} aria-hidden="true" />
               {progresso.label}
             </Link>
@@ -184,7 +184,7 @@ export default function AtacadoShell({
             <h1 className="atc-titulo">{atual.titulo}</h1>
             <p className="atc-subtitulo">{atual.subtitulo}</p>
           </div>
-          <Link href="/atacado/carrinho" className="atc-pill" aria-label={`Carrinho: ${progresso.atual} de ${progresso.minimo} SKUs`}>
+          <Link href="/atacado/carrinho" className="atc-pill" aria-label={`Carrinho: ${progresso.atual} de ${progresso.minimo} produtos`}>
             <ShoppingCart size={16} aria-hidden="true" />
             {progresso.label}
           </Link>

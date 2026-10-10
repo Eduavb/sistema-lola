@@ -43,6 +43,7 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
   const [modo, setModo] = useState<Modo>(modoInicial);
   const [avisoSessao, setAvisoSessao] = useState("");
   const [valores, setValores] = useState<Record<string, string>>({});
+  const [enviado, setEnviado] = useState(false);
   const renovou = useRef(false);
   const tituloRef = useRef<HTMLHeadingElement>(null);
 
@@ -57,6 +58,7 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
 
   function ir(novo: Modo) {
     setModo(novo);
+    setEnviado(false);
     setAvisoSessao("");
     setValores((v) => ({ ...v, senha: "" }));
     window.history.replaceState(null, "", urlDoModo(novo, next));
@@ -64,7 +66,7 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
   }
 
   const copy = COPY[modo];
-  const mostraAbas = modo === "entrar" || modo === "cadastro";
+  const mostraAbas = (modo === "entrar" || modo === "cadastro") && !enviado;
 
   return (
     <div className="auth-frame">
@@ -94,10 +96,14 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
                   ← Voltar para entrar
                 </button>
               )}
-              <h1 className="auth-title" ref={tituloRef} tabIndex={-1}>
-                {copy.titulo}
-              </h1>
-              <p className="auth-sub">{copy.subtitulo}</p>
+              {!enviado && (
+                <>
+                  <h1 className="auth-title" ref={tituloRef} tabIndex={-1}>
+                    {copy.titulo}
+                  </h1>
+                  <p className="auth-sub">{copy.subtitulo}</p>
+                </>
+              )}
             </div>
 
             <div aria-live="polite">{avisoSessao && <div className="auth-error">{avisoSessao}</div>}</div>
@@ -120,6 +126,7 @@ export default function LoginView({ modoInicial, next, etiqueta, titulo, renovar
               valores={valores}
               setValores={setValores}
               aoSubmeter={() => setAvisoSessao("")}
+              aoMudarEnvio={setEnviado}
               onEsqueci={() => ir("esqueci")}
             />
 
@@ -147,10 +154,11 @@ type FormularioProps = {
   valores: Record<string, string>;
   setValores: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   aoSubmeter: () => void;
+  aoMudarEnvio: (enviado: boolean) => void;
   onEsqueci: () => void;
 };
 
-function Formulario({ modo, next, valores, setValores, aoSubmeter, onEsqueci }: FormularioProps) {
+function Formulario({ modo, next, valores, setValores, aoSubmeter, aoMudarEnvio, onEsqueci }: FormularioProps) {
   const router = useRouter();
   const [estado, formAction, pendente] = useActionState<Estado, FormData>(ACOES[modo], {});
   const [diagnostico, setDiagnostico] = useState<{ campo: string; mensagem: string } | null>(null);
@@ -160,7 +168,11 @@ function Formulario({ modo, next, valores, setValores, aoSubmeter, onEsqueci }: 
   }, [estado.destino, router]);
 
   const enviado = !!estado.sent;
-  const escondeForm = enviado && (modo === "revendedor" || modo === "esqueci");
+  const escondeForm = enviado;
+
+  useEffect(() => {
+    aoMudarEnvio(enviado);
+  }, [enviado, aoMudarEnvio]);
   const erro = diagnostico?.mensagem || estado.error || "";
 
   function aoEnviar(e: React.FormEvent<HTMLFormElement>) {
