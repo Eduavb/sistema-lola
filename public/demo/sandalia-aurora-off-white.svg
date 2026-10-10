@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect width="600" height="600" fill="#F5ECE2"/><circle cx="470" cy="150" r="90" fill="#fff" opacity=".35"/><ellipse cx="318" cy="452" rx="215" ry="20" fill="#2B2420" opacity=".1"/>
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffff8"/><stop offset="1" stop-color="#d0c3b2"/></linearGradient><linearGradient id="cortica" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1DCC2"/><stop offset="1" stop-color="#D9B58C"/></linearGradient></defs>
+    <path d="M108 410 Q108 380 140 378 L502 358 Q542 358 542 386 Q542 412 506 416 L152 442 Q108 444 108 410Z" fill="url(#cortica)"/>
+    <path d="M118 396 L520 374" fill="none" stroke="#fff" stroke-width="4" opacity=".55"/>
+    <path d="M112 420 Q320 440 538 400" fill="none" stroke="#B88C5E" stroke-width="6" opacity=".6"/>
+    <path d="M150 378 Q142 308 178 284" fill="none" stroke="url(#g)" stroke-width="26" stroke-linecap="round"/>
+    <path d="M236 376 Q292 246 362 368" fill="none" stroke="url(#g)" stroke-width="34" stroke-linecap="round"/>
+    <path d="M396 366 Q432 286 484 360" fill="none" stroke="url(#g)" stroke-width="30" stroke-linecap="round"/>
+    <path d="M236 376 Q292 252 362 368" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 8" opacity=".7"/>
+    <circle cx="178" cy="284" r="14" fill="#E8C26A"/><circle cx="178" cy="284" r="6" fill="#B58A2B"/></svg>
