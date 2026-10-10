@@ -384,6 +384,8 @@ function ConviteDrawer({
   const [erros, setErros] = useState<{ email?: string; papel?: string }>({});
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [registrado, setRegistrado] = useState<{ email: string; papel: Papel } | null>(null);
+  const [copiado, setCopiado] = useState(false);
   const inicial = useState({ email, papel })[0];
   const alterado = temAlteracoes(inicial, { email, papel });
   const fechar = () => {
@@ -404,7 +406,17 @@ function ConviteDrawer({
       setErro(r.error);
       return;
     }
-    await onConcluir("Convite registrado.");
+    setRegistrado({ email: v.email, papel });
+  }
+
+  const linkCadastro = typeof window === "undefined" ? "" : `${window.location.origin}/entrar?modo=cadastro`;
+  async function copiarLink() {
+    try {
+      await navigator.clipboard.writeText(linkCadastro);
+      setCopiado(true);
+    } catch {
+      setCopiado(false);
+    }
   }
 
   return (
@@ -412,22 +424,51 @@ function ConviteDrawer({
       aberto
       kicker="NOVO USUÁRIO"
       titulo="Adicionar usuário"
-      onFechar={onFechar}
-      confirmarFechar={() => confirmarDescarte(alterado)}
+      onFechar={registrado ? () => onConcluir("Convite registrado.") : onFechar}
+      confirmarFechar={() => registrado !== null || confirmarDescarte(alterado)}
       rodape={
-        <>
-          <button type="button" className="adm-btn" onClick={fechar}>
-            Cancelar
+        registrado ? (
+          <button type="button" className="adm-btn adm-btn-primario" onClick={() => onConcluir("Convite registrado.")}>
+            Concluir
           </button>
-          <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={ocupado}>
-            {ocupado ? "Salvando…" : "Convidar"}
-          </button>
-        </>
+        ) : (
+          <>
+            <button type="button" className="adm-btn" onClick={fechar}>
+              Cancelar
+            </button>
+            <button type="submit" form={formId} className="adm-btn adm-btn-primario" disabled={ocupado}>
+              {ocupado ? "Salvando…" : "Registrar convite"}
+            </button>
+          </>
+        )
       }
     >
+      {registrado ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <p className="adm-nota" style={{ margin: 0 }}>
+            <strong>Convite registrado, mas nenhum e-mail foi enviado.</strong> O sistema só guarda que{" "}
+            <strong>{registrado.email}</strong> terá o papel <strong>{rotuloPapel(registrado.papel)}</strong>. Para ele valer:
+          </p>
+          <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.6 }}>
+            <li>Envie o link abaixo para a pessoa, por WhatsApp ou e-mail.</li>
+            <li>Ela cria a conta com <strong>exatamente este e-mail</strong>: {registrado.email}.</li>
+            <li>Ela confirma o e-mail pelo link que a LOLA envia. O papel é aplicado na hora da confirmação.</li>
+          </ol>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input className="adm-input" readOnly value={linkCadastro} aria-label="Link de cadastro" onFocus={(e) => e.currentTarget.select()} />
+            <button type="button" className="adm-btn" onClick={copiarLink}>
+              {copiado ? "Copiado" : "Copiar link"}
+            </button>
+          </div>
+          <p className="adm-dica" style={{ margin: 0 }}>
+            Se a pessoa já tinha conta confirmada com este e-mail, o papel já foi aplicado e ela só precisa sair e entrar de novo.
+            Convites de equipe só valem para contas criadas depois do convite.
+          </p>
+        </div>
+      ) : (
       <form id={formId} onSubmit={enviar} noValidate style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <p className="adm-nota" style={{ margin: 0 }}>
-          Isso cria um convite, não uma conta. Quando essa pessoa criar a conta com este e-mail, recebe o papel escolhido. Se ela já tem conta confirmada, o papel é aplicado agora.
+          Isso registra um convite, não cria conta nem envia e-mail. Depois de registrar, você recebe o link de cadastro para mandar à pessoa. Quando ela criar a conta com este e-mail e confirmar, recebe o papel escolhido. Se ela já tem conta confirmada, o papel é aplicado agora.
         </p>
         <Campo rotulo="E-mail *" erro={erros.email}>
           {(p) => (
@@ -460,6 +501,7 @@ function ConviteDrawer({
           )}
         </div>
       </form>
+      )}
     </Drawer>
   );
 }
