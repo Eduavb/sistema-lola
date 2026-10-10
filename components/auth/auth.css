@@ -289,3 +289,41 @@
     padding: 32px 48px;
   }
 }
+
+/* Checklist após o cadastro de revendedor */
+.auth-check { display: flex; flex-direction: column; gap: 6px; }
+.auth-check-titulo { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.auth-check-sub { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+.auth-check-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.auth-check-passo { position: relative; display: flex; gap: 14px; padding-bottom: 22px; }
+.auth-check-passo:last-child { padding-bottom: 0; }
+.auth-check-passo:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 46px;
+  bottom: 2px;
+  width: 2px;
+  background: var(--line);
+}
+.auth-check-passo--feito:not(:last-child)::before { background: var(--mint-deep); }
+.auth-check-marca {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+.auth-check-passo--feito .auth-check-marca { background: var(--mint); color: #1f6b52; }
+.auth-check-passo--atual .auth-check-marca {
+  background: var(--pink);
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(255, 143, 171, 0.28);
+}
+.auth-check-corpo { display: flex; flex-direction: column; gap: 3px; padding-top: 3px; min-width: 0; }
+.auth-check-nome { font-size: 15px; font-weight: 700; color: var(--ink); }
+.auth-check-texto { font-size: 13px; line-height: 1.5; color: var(--ink-soft); overflow-wrap: anywhere; }
+.auth-check-passo--espera .auth-check-nome { color: var(--muted); }

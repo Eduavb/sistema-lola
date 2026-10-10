@@ -141,10 +141,16 @@ export default function AdminApp({
     await refreshRevendedores();
   }
 
+  // Recarrega ao abrir o painel e ao trocar de tela, e a cada minuto com a aba visível,
+  // para novos cadastros de revendedor aparecerem sem recarregar a página.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial única (badge de pendentes)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de dados do servidor
     refreshRevendedores();
-  }, []);
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") refreshRevendedores();
+    }, 60_000);
+    return () => clearInterval(t);
+  }, [screen]);
 
   async function handleLogout() {
     await sairAction();
