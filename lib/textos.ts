@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export const TEXTOS_PADRAO: Record<string, string> = {
-  "aviso.texto": "FRETE GRÁTIS ACIMA DE R$ 299 · TROCA FÁCIL EM 30 DIAS",
+  "aviso.texto": "TROCA FÁCIL EM 30 DIAS",
   "aviso.ativo": "true",
   "rodape.descricao": "Calçados e acessórios.",
   "rodape.ajuda1_texto": "Trocas e devoluções",
