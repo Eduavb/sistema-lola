@@ -21,7 +21,7 @@ export default async function PedidosAtacadoPage() {
     <div className="atc-tabela" role="table" aria-label="Meus pedidos">
       <div className="atc-tabela-linha atc-tabela-cab" role="row">
         <div role="columnheader">PEDIDO</div>
-        <div role="columnheader">SKUS</div>
+        <div role="columnheader">PRODUTOS</div>
         <div role="columnheader">DATA</div>
         <div role="columnheader">VALOR</div>
         <div role="columnheader">STATUS</div>
@@ -35,7 +35,7 @@ export default async function PedidosAtacadoPage() {
               {pedidoIdCurto(p.id)}
             </div>
             <div role="cell">
-              <span className="atc-pedido-rotulo">SKUs</span>
+              <span className="atc-pedido-rotulo">Produtos</span>
               {p.skus}
             </div>
             <div className="atc-suave" role="cell">

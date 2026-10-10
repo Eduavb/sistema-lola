@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { authedSupabase, exigirPapel } from "@/lib/auth";
 import { BRAND } from "@/lib/brand.config";
+import { DEMO } from "@/lib/demo-catalogo";
 import AtacadoShell from "@/components/atacado/AtacadoShell";
 import GateStatus from "@/components/atacado/GateStatus";
 import { carregarCadastro, carregarCarrinho } from "./dados";
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AtacadoLayout({ children }: { children: ReactNode }) {
+  if (DEMO) return <AtacadoShell nome="Revendedora Demo" skus={0}>{children}</AtacadoShell>;
   const perfil = await exigirPapel(["revendedor"], "/atacado");
   const db = await authedSupabase();
   const cadastro = await carregarCadastro(db);

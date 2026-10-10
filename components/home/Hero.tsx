@@ -32,7 +32,13 @@ export default function Hero({
   imagemSrc: string | null;
 }) {
   return (
-    <section className="home-hero">
+    <section className={imagemSrc ? "home-hero" : "home-hero home-hero--marca"}>
+      {!imagemSrc && (
+        <div className="home-hero-marca" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lola-logo.png" alt="" />
+        </div>
+      )}
       {imagemSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="home-hero-img" src={imagemSrc} alt="" decoding="async" fetchPriority="high" />

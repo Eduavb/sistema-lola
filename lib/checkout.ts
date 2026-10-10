@@ -55,10 +55,10 @@ export function mensagemErroCheckout(
 
   const minimo = m.match(/mínimo de (\d+) SKUs distintos \(carrinho tem (\d+)\)/);
   if (minimo) {
-    return `O pedido de atacado precisa de pelo menos ${minimo[1]} SKUs distintos. Seu carrinho tem ${minimo[2]}.`;
+    return `O pedido de atacado precisa de pelo menos ${minimo[1]} produtos distintos. Seu carrinho tem ${minimo[2]}.`;
   }
   if (m.includes("mínimo de")) {
-    return `O pedido de atacado precisa de pelo menos ${MIN_SKUS_ATACADO} SKUs distintos.`;
+    return `O pedido de atacado precisa de pelo menos ${MIN_SKUS_ATACADO} produtos distintos.`;
   }
 
   if (m.includes("revendedor não aprovado")) {
@@ -131,7 +131,7 @@ export function avaliarCarrinhoAtacado(itens: ItemCarrinhoAtacado[]): AvaliacaoA
   else if (problemas.length > 0)
     motivo = "Há itens indisponíveis ou sem estoque suficiente. Ajuste o carrinho para continuar.";
   else if (skus < MIN_SKUS_ATACADO)
-    motivo = `O pedido de atacado precisa de pelo menos ${MIN_SKUS_ATACADO} SKUs distintos. Seu carrinho tem ${skus}.`;
+    motivo = `O pedido de atacado precisa de pelo menos ${MIN_SKUS_ATACADO} produtos distintos. Seu carrinho tem ${skus}.`;
 
   return { skus, problemas, liberado: motivo === null, motivo };
 }

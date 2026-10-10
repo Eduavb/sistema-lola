@@ -72,10 +72,10 @@ describe("progressoSkus", () => {
 });
 
 describe("textoFaltam", () => {
-  it("plural", () => expect(textoFaltam(9)).toBe("Faltam 3 SKUs para finalizar"));
-  it("singular", () => expect(textoFaltam(11)).toBe("Falta 1 SKU para finalizar"));
+  it("plural", () => expect(textoFaltam(9)).toBe("Faltam 3 produtos para finalizar"));
+  it("singular", () => expect(textoFaltam(11)).toBe("Falta 1 produto para finalizar"));
   it("nulo quando completo", () => expect(textoFaltam(12)).toBeNull());
-  it("zero SKUs", () => expect(textoFaltam(0)).toBe("Faltam 12 SKUs para finalizar"));
+  it("zero SKUs", () => expect(textoFaltam(0)).toBe("Faltam 12 produtos para finalizar"));
 });
 
 describe("decisaoFinalizar", () => {
@@ -85,7 +85,7 @@ describe("decisaoFinalizar", () => {
   it("bloqueia com menos de 12", () => {
     expect(decisaoFinalizar(itens(10))).toEqual({
       habilitado: false,
-      texto: "Faltam 2 SKUs para finalizar",
+      texto: "Faltam 2 produtos para finalizar",
     });
   });
   it("bloqueia com alerta de estoque mesmo com 12 SKUs", () => {
@@ -104,13 +104,13 @@ describe("decisaoFinalizar", () => {
   it("carrinho vazio", () => {
     expect(decisaoFinalizar([])).toEqual({
       habilitado: false,
-      texto: "Faltam 12 SKUs para finalizar",
+      texto: "Faltam 12 produtos para finalizar",
     });
   });
   it("itens indisponíveis não contam como SKU", () => {
     const l = itens(12);
     l[0] = { ...l[0], disponivel: false };
-    expect(decisaoFinalizar(l).texto).toBe("Falta 1 SKU para finalizar");
+    expect(decisaoFinalizar(l).texto).toBe("Falta 1 produto para finalizar");
   });
 });
 
